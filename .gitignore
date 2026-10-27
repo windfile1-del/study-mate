@@ -1,0 +1,11 @@
+node_modules/
+out/
+.cache/
+.local/
+artifacts/
+release/
+*.tsbuildinfo
+apps/desktop/src/renderer/public/pdf-assets/
+apps/desktop/src/renderer/public/recognition-runtime/
+vendor/local-models/**/onnx/
+vendor/local-models/sensevoice/*.onnx

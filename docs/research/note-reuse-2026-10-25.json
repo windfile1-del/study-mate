@@ -1,0 +1,98 @@
+{
+  "researchDate": "2026-10-25",
+  "revision": "r2",
+  "purpose": "Reuse ready-made note components and revise first-usable-release scope",
+  "selected": [
+    "uiwjs/react-md-editor",
+    "jameskerr/react-arborist",
+    "paulmillr/chokidar",
+    "krisk/Fuse"
+  ],
+  "repositories": [
+    {
+      "repo": "Vanessa219/vditor",
+      "url": "https://github.com/Vanessa219/vditor",
+      "commit": "3a0c64cf97345c2b8a0e1d6d53abbc787d53988c",
+      "branch": "master",
+      "licensePath": "LICENSE",
+      "licenseHeader": "MIT License  Copyright (c) 2019-present B3log 开源, b3log.org",
+      "runtimeVerified": false
+    },
+    {
+      "repo": "krisk/Fuse",
+      "url": "https://github.com/krisk/Fuse",
+      "commit": "edf2fb608eca0461508d1d71317e6e58309ffada",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "licenseHeader": "Apache License                            Version 2.0, January 2004                         http://www.apache.org/licenses/",
+      "runtimeVerified": false
+    },
+    {
+      "repo": "jameskerr/react-arborist",
+      "url": "https://github.com/jameskerr/react-arborist",
+      "commit": "a4c7805719df5b5ec2d33aa49d27be18b42a08c4",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "licenseHeader": "MIT License  Copyright (c) 2022 Brim Data",
+      "runtimeVerified": false
+    },
+    {
+      "repo": "mdx-editor/editor",
+      "url": "https://github.com/mdx-editor/editor",
+      "commit": "4d9499a86cb797cb92d2a6a4718619983e5955e3",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "licenseHeader": "MIT License  Copyright (c) 2023 Petyo Ivanov",
+      "runtimeVerified": false
+    },
+    {
+      "repo": "uiwjs/react-md-editor",
+      "url": "https://github.com/uiwjs/react-md-editor",
+      "commit": "35bd36df37a12b218320935021400febe14bdae5",
+      "branch": "master",
+      "licensePath": "LICENSE",
+      "licenseHeader": "MIT License  Copyright (c) 2020 uiw",
+      "runtimeVerified": false
+    },
+    {
+      "repo": "paulmillr/chokidar",
+      "url": "https://github.com/paulmillr/chokidar",
+      "commit": "4130839be8ca2dd05692837cde3145276f58f8bf",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "licenseHeader": "The MIT License (MIT)  Copyright (c) 2012 Paul Miller (https://paulmillr.com), Elan Shanker",
+      "runtimeVerified": false
+    },
+    {
+      "repo": "Milkdown/milkdown",
+      "url": "https://github.com/Milkdown/milkdown",
+      "commit": "c0f355fbae472734a211ac8b4bc48b67ace8802f",
+      "branch": "main",
+      "licensePath": "LICENSE",
+      "licenseHeader": "The MIT License (MIT)  Copyright (c) 2020-present Mirone",
+      "runtimeVerified": false
+    }
+  ],
+  "selectionNotes": [
+    "Use controlled Markdown source values; source fidelity and math preview still need runtime verification",
+    "Tree callbacks must invoke actual file services; UI state is not filesystem persistence",
+    "Pin released versions compatible with the chosen Electron/Node runtime",
+    "No dependencies installed and no business source modified in this revision"
+  ],
+  "estimate": {
+    "noteIntegrationPersonDays": [
+      1,
+      2
+    ],
+    "baseFirstReleasePersonDays": [
+      6,
+      11
+    ],
+    "integrationAllowancePersonDays": 1,
+    "firstUsableReleasePersonDays": [
+      7,
+      12
+    ],
+    "conditionalOnEarlyValidation": true
+  }
+}

@@ -1,0 +1,160 @@
+.ai-tool-log {
+  margin: 8px 0 12px;
+  border: 1px solid #dce6d3;
+  border-radius: 10px;
+  background: #f7faf3;
+  overflow: hidden;
+  font-size: 12px;
+}
+.ai-quick-controls {
+  display: grid;
+  grid-template-columns: minmax(65px, 0.9fr) minmax(85px, 1.2fr) minmax(65px, 0.7fr) 26px;
+  gap: 6px;
+  padding: 0 0 9px;
+}
+.ai-quick-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #7f8c75;
+  font-size: 10px;
+  min-width: 0;
+}
+.ai-quick-controls select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dce5d5;
+  border-radius: 7px;
+  padding: 6px 3px;
+  background: #fff;
+  color: #425d36;
+  font-size: 11px;
+}
+.ai-quick-controls small {
+  grid-column: 1 / -1;
+  color: #98a28f;
+  font-size: 10px;
+}
+.ai-quick-refresh {
+  align-self: end;
+  height: 29px;
+  border: 1px solid #dce5d5;
+  border-radius: 7px;
+  background: #f6f9f2;
+  color: #688452;
+  cursor: pointer;
+}
+.compact-ai .ai-quick-controls {
+  padding-bottom: 3px;
+}
+.compact-ai .ai-quick-controls small {
+  display: none;
+}
+.compact-ai .ai-model-picker {
+  display: none;
+}
+.ai-quick-controls {
+  margin-left: 12px;
+  margin-right: 12px;
+}
+.ai-model-field-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 12px;
+}
+.ai-model-field-label button {
+  padding: 0 3px;
+  border: 0;
+  background: transparent;
+  color: #789261;
+  font-size: 9px;
+  cursor: pointer;
+}
+.ai-manual-model {
+  display: flex;
+  gap: 6px;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.ai-manual-model input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid #dce5d5;
+  border-radius: 6px;
+  padding: 6px;
+  color: #425d36;
+  font-size: 11px;
+}
+.ai-manual-model button {
+  border: 1px solid #dce5d5;
+  background: #f0f5e9;
+  color: #5b7946;
+  border-radius: 6px;
+  font-size: 11px;
+}
+.ai-image-import {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 4px;
+  border: 0;
+  background: transparent;
+  color: #6d835b;
+  font: inherit;
+  cursor: pointer;
+}
+.ai-context-options {
+  flex-wrap: wrap;
+  row-gap: 5px;
+}
+.ai-tool-open {
+  margin-top: 5px;
+  border: 1px solid #d7e2ce;
+  border-radius: 6px;
+  background: white;
+  color: #5d784b;
+  padding: 3px 8px;
+  font: inherit;
+  cursor: pointer;
+}
+.ai-tool-log summary {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: #587044;
+}
+.ai-tool-item {
+  display: flex;
+  gap: 8px;
+  padding: 9px 12px;
+  border-top: 1px solid #e6ecdf;
+}
+.ai-tool-status {
+  color: #71945e;
+  padding-top: 2px;
+  flex: 0 0 14px;
+}
+.ai-tool-item strong {
+  font-size: 12px;
+  margin-right: 8px;
+  font-weight: 600;
+}
+.ai-tool-item span {
+  overflow-wrap: anywhere;
+}
+.ai-tool-item p {
+  margin: 4px 0 0;
+  color: #87927f;
+  max-height: 66px;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-size: 11px;
+}
+.ai-tool-item.failed .ai-tool-status,
+.ai-tool-item.cancelled .ai-tool-status {
+  color: #a16d4e;
+}

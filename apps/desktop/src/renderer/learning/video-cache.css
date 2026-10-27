@@ -1,0 +1,112 @@
+.video-cache-settings {
+  background: #fff;
+  border: 1px solid #dce5d4;
+  border-radius: 16px;
+  padding: 24px;
+  color: #304839;
+}
+.video-cache-heading {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.video-cache-heading > span {
+  padding: 14px;
+  border-radius: 14px;
+  background: #edf3e5;
+  color: #66854b;
+}
+.video-cache-heading h3 {
+  margin: 0 0 8px;
+  font-size: 21px;
+}
+.video-cache-heading p,
+.video-cache-info p,
+.video-cache-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #7b8d73;
+}
+.video-cache-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0;
+  font-size: 15px;
+}
+.video-cache-toggle input {
+  accent-color: #397057;
+  width: 17px;
+  height: 17px;
+}
+.video-cache-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.video-cache-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: #7b8d73;
+}
+.video-cache-fields select {
+  padding: 10px;
+  background: #fafcf8;
+  border: 1px solid #dce5d4;
+  border-radius: 8px;
+  color: #425e37;
+}
+.video-cache-info {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: #f4f7ef;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 22px 0;
+}
+.video-cache-info svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+  color: #7b9565;
+}
+.video-cache-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.video-cache-actions button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dce5d4;
+  border-radius: 9px;
+  padding: 11px 16px;
+  background: white;
+  color: #4b6841;
+  cursor: pointer;
+}
+.video-cache-actions button.learning-primary {
+  background: #3c6c55;
+  color: white;
+  border-color: #3c6c55;
+}
+.video-cache-hint {
+  margin-top: 20px;
+}
+.video-cache-message {
+  font-size: 13px;
+  color: #466e37;
+  line-height: 1.7;
+}
+@media (max-width: 850px) {
+  .video-cache-fields {
+    grid-template-columns: 1fr;
+  }
+  .video-cache-settings {
+    padding: 18px;
+  }
+}

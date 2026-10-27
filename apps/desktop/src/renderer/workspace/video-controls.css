@@ -1,0 +1,78 @@
+.video-controls {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e1e9db;
+  background: #f8faf4;
+  color: #536a45;
+  min-width: 0;
+}
+.video-controls-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+}
+.video-controls-heading > span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.video-controls button,
+.video-controls select {
+  border: 1px solid #dbe4d2;
+  background: white;
+  color: #5c7849;
+  border-radius: 6px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.video-controls.is-focused {
+  background: #eef4e5;
+}
+.video-controls.is-focused .video-controls-heading > button {
+  background: #6f8957;
+  color: white;
+  border-color: #6f8957;
+}
+.video-controls small {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  color: #95a189;
+}
+.video-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 7px;
+}
+.video-controls-row > button {
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+.video-controls-row input {
+  flex: 1;
+  min-width: 20px;
+  accent-color: #78935e;
+}
+.video-time {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.video-controls-row select {
+  max-width: 64px;
+  padding: 4px;
+}
+.video-controls p {
+  font-size: 11px;
+  color: #9a6548;
+  margin: 5px 0 0;
+}
+.video-controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

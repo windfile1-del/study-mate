@@ -1,0 +1,394 @@
+.note-preview {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  color: #334331;
+  font:
+    14px/1.85 'Microsoft YaHei',
+    system-ui,
+    sans-serif;
+}
+.note-reading-tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 18px;
+  font-size: 11px;
+  border-bottom: 1px solid #eef0e9;
+  flex-shrink: 0;
+  color: #87937f;
+}
+.note-reading-tools select {
+  max-width: 55%;
+  border: 1px solid #e0e7d9;
+  border-radius: 6px;
+  padding: 5px 8px;
+  background: #fafcf7;
+  color: #607255;
+  font: 11px inherit;
+}
+.note-preview-scroll {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  overflow-anchor: none;
+  padding: 18px 26px 32px;
+  scrollbar-width: thin;
+}
+.note-preview .wmde-markdown {
+  color: #384735;
+  font-size: 14px;
+  line-height: 1.85;
+  font-family: inherit;
+  background: transparent;
+}
+.note-rendered-block {
+  padding: 0 0 10px;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+.note-preview .note-rendered-block > :first-child {
+  margin-top: 0;
+}
+.note-preview .note-rendered-block > :last-child {
+  margin-bottom: 0;
+}
+.note-preview h1,
+.note-preview h2,
+.note-preview h3 {
+  color: #2d462c;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.note-preview h1 {
+  font-size: 27px;
+  border-bottom: 1px solid #e8ecdf;
+  padding-bottom: 14px;
+}
+.note-preview h2 {
+  font-size: 21px;
+  border-bottom: 1px solid #eef0e8;
+  padding-bottom: 9px;
+}
+.note-preview h3 {
+  font-size: 17px;
+}
+.note-preview .katex {
+  font-size: 1.15em;
+  color: #293a29;
+}
+.note-preview .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 10px 4px;
+  margin: 8px 0;
+}
+.note-preview .katex .katex-mathml {
+  overflow: hidden !important;
+}
+.note-preview .katex.cjk-fraction {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: middle;
+  overflow-x: auto;
+  padding: 7px 2px;
+  margin: 2px 0;
+  scrollbar-width: thin;
+}
+.note-preview .katex.cjk-fraction .cjk_fallback {
+  font-family: 'Microsoft YaHei', system-ui, sans-serif;
+}
+.note-preview .katex-error {
+  display: inline-block;
+  border-bottom: 1px dashed #bb7862;
+  background: #fff5ef;
+  font: 12px/1.7 monospace;
+  white-space: pre-wrap;
+  padding: 6px;
+}
+.note-preview pre {
+  overflow: auto;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #f4f6f1;
+  color: #46573f;
+  font:
+    12px/1.8 Consolas,
+    monospace;
+  white-space: pre;
+}
+.note-preview code {
+  font-family: Consolas, monospace;
+}
+.note-preview :not(pre) > code {
+  background: #eff2ea;
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 0.9em;
+}
+.note-preview mark {
+  background: #fff0a5;
+  color: inherit;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+.note-preview table {
+  border-collapse: collapse;
+  width: 100%;
+  display: block;
+  overflow: auto;
+}
+.note-preview th,
+.note-preview td {
+  padding: 8px 12px;
+  border: 1px solid #e2e7db;
+  min-width: 90px;
+}
+.note-preview th {
+  background: #f3f6ed;
+}
+.note-callout {
+  border: 1px solid #dce7d4;
+  border-left: 4px solid #86a371;
+  background: #f4f8ef;
+  padding: 13px 17px;
+  border-radius: 8px;
+  margin: 0 0 8px;
+}
+.note-callout[data-callout='warning'],
+.note-callout[data-callout='caution'] {
+  border-color: #e7d4a1;
+  background: #fcf8ed;
+}
+.note-callout[data-callout='danger'],
+.note-callout[data-callout='failure'] {
+  border-color: #e3b6ae;
+  background: #fff5f3;
+}
+.note-callout .callout-title {
+  font-weight: 600;
+  color: #547546;
+  margin-bottom: 6px;
+}
+.note-callout summary {
+  cursor: pointer;
+}
+.note-preview blockquote {
+  border-left: 3px solid #c9d6be;
+  margin: 0;
+  padding: 4px 16px;
+  color: #7a8971;
+}
+.note-properties {
+  padding: 9px 18px;
+  border-bottom: 1px solid #e8eddf;
+  color: #8a967f;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.note-properties summary {
+  cursor: pointer;
+}
+.note-properties pre {
+  max-height: 130px;
+  overflow: auto;
+  margin-bottom: 0;
+  font-size: 11px;
+}
+.note-internal-link,
+.note-external-link {
+  color: #527b48;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+}
+.note-image {
+  display: inline-block;
+  max-width: 100%;
+  min-height: 24px;
+}
+.note-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.attachment-error {
+  color: #a87759;
+  background: #fcf6ed;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.mermaid-diagram {
+  margin: 0;
+  border: 1px solid #e1e8d9;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+.diagram-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 13px;
+  font-size: 11px;
+  color: #75866b;
+  background: #f6f9f2;
+}
+.diagram-caption button,
+.diagram-modal-tools button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: none;
+  color: #5e8050;
+  padding: 4px;
+  cursor: pointer;
+  font: inherit;
+}
+.diagram-canvas {
+  max-height: 520px;
+  overflow: auto;
+  padding: 12px;
+  scrollbar-width: thin;
+}
+.diagram-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  min-height: 70px;
+  margin: 12px auto;
+}
+.mermaid-diagram details {
+  border-top: 1px solid #edf0e7;
+  padding: 7px 13px;
+  font-size: 11px;
+  color: #8a967f;
+}
+.mermaid-diagram summary {
+  cursor: pointer;
+}
+.diagram-error {
+  color: #b16f55;
+  padding: 12px;
+  font-size: 12px;
+}
+.diagram-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: #edf2e8f7;
+  padding: 35px;
+}
+.diagram-modal-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  background: white;
+  border-radius: 10px 10px 0 0;
+  padding: 14px;
+}
+.diagram-modal-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #fff;
+  border-radius: 0 0 10px 10px;
+  padding: 20px;
+}
+.diagram-modal-scroll img {
+  display: block;
+  min-height: 150px;
+}
+.embedded-note {
+  margin: 10px 0;
+  border: 1px solid #e0e6d8;
+  border-radius: 8px;
+  padding: 12px;
+}
+.note-preview-embedded {
+  height: 420px;
+  margin-top: 10px;
+  border-top: 1px solid #e7ecdf;
+}
+.note-skeleton {
+  padding: 20px 5px;
+  color: #9aa590;
+  font-size: 12px;
+}
+.note-skeleton span {
+  display: block;
+  height: 13px;
+  border-radius: 5px;
+  background: #eff2eb;
+  margin-bottom: 16px;
+  width: 80%;
+}
+.note-skeleton span:nth-child(2) {
+  width: 95%;
+}
+.note-skeleton span:nth-child(3) {
+  width: 65%;
+}
+.note-view-modes {
+  display: flex;
+  border: 1px solid #dfe7d7;
+  border-radius: 7px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.note-view-modes button {
+  border: 0;
+  border-right: 1px solid #e5ebdf;
+  padding: 6px 9px;
+  background: #fff;
+  color: #85967a;
+  font-size: 11px;
+}
+.note-view-modes button:last-child {
+  border-right: 0;
+}
+.note-view-modes button.active {
+  background: #e9f1e2;
+  color: #4b7140;
+}
+.note-toolbar {
+  flex-wrap: wrap;
+}
+.note-toolbar > div {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.note-editor {
+  padding: 10px;
+}
+.note-editor > .note-preview {
+  border: 1px solid #e4eadd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.note-editor .w-md-editor-preview {
+  overflow: hidden;
+  padding: 0;
+}
+.note-editor .w-md-editor-content {
+  min-height: 0;
+}
+.note-load-status {
+  padding: 8px 18px;
+  color: #718363;
+  background: #f0f5e9;
+  font-size: 12px;
+  border-bottom: 1px solid #e4eadb;
+}

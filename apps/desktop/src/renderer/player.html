@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; media-src study-media:; img-src 'self' data:"
+    />
+    <title>本地视频</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #111;
+        color: #eee;
+        font: 14px system-ui;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+      video {
+        width: 100%;
+        flex: 1;
+        min-height: 0;
+      }
+      p {
+        margin: 12px 20px;
+        color: #bec8bf;
+      }
+    </style>
+  </head>
+  <body>
+    <video controls crossorigin="anonymous" preload="metadata"></video>
+    <p id="status">使用内置播放器播放；若编码不受支持，请换用 MP4（H.264）或 WebM。</p>
+    <script type="module" src="/player.ts"></script>
+  </body>
+</html>

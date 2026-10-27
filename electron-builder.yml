@@ -1,0 +1,36 @@
+appId: local.studymate.desktop
+productName: Study Mate
+asar: true
+asarUnpack:
+  - node_modules/sherpa-onnx-win-x64/**/*
+electronDist: node_modules/electron/dist
+afterPack: scripts/package-local-models.cjs
+directories:
+  output: release/0.10.0
+files:
+  - out/**/*
+  - package.json
+extraResources:
+  - from: docs/14-视频自主阅读与缓存.md
+    to: 视频阅读与缓存说明.md
+  - from: vendor/recognition
+    to: notices/recognition
+    filter: ['**/*', '!audio-worklet.js']
+  - from: docs/13-中文采音与多模态检索.md
+    to: 中文采音与多模态检索说明.md
+  - from: vendor/documents
+    to: notices/documents
+  - from: docs/12-PDF与PowerPoint阅读.md
+    to: 文档阅读说明.md
+  - from: vendor/subscriptions/NOTICE.md
+    to: notices/subscriptions.md
+  - from: vendor/video-observer/NOTICE.md
+    to: notices/video-observer.md
+  - from: docs/随包说明.txt
+    to: 随包说明.txt
+win:
+  target:
+    - target: zip
+      arch: [x64]
+  signAndEditExecutable: false
+artifactName: Study-Mate-${version}-Windows-${arch}.${ext}

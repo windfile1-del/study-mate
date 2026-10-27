@@ -1,0 +1,11 @@
+{
+  "retrievedAt": "2026-10-26T07:20:53.974Z",
+  "sources": {
+    "SenseVoice-MODEL_LICENSE.txt": "https://raw.githubusercontent.com/modelscope/FunASR/main/MODEL_LICENSE",
+    "SenseVoice-code-MIT.txt": "https://raw.githubusercontent.com/FunAudioLLM/SenseVoice/main/LICENSE",
+    "sherpa-onnx-Apache-2.0.txt": "https://raw.githubusercontent.com/k2-fsa/sherpa-onnx/master/LICENSE",
+    "ONNXRuntime-MIT.txt": "https://raw.githubusercontent.com/microsoft/onnxruntime/main/LICENSE",
+    "Tesseract-data-Apache-2.0.txt": "https://raw.githubusercontent.com/tesseract-ocr/tessdata/main/LICENSE",
+    "MiniLM-Apache-2.0.txt": "https://raw.githubusercontent.com/UKPLab/sentence-transformers/master/LICENSE"
+  }
+}

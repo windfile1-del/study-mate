@@ -1,0 +1,287 @@
+{
+  "researchDate": "2026-10-25",
+  "timezone": "Asia/Shanghai",
+  "scope": [
+    "Windows desktop",
+    "Bilibili",
+    "local video",
+    "PDF",
+    "Markdown vault",
+    "AI Q&A"
+  ],
+  "repositories": [
+    {
+      "repo": "smallnest/notex",
+      "url": "https://github.com/smallnest/notex",
+      "branch": "master",
+      "commit": "be5469be6974376df9e9b24793b61407e1ec318a",
+      "commitDate": "2026-03-23T03:35:19Z",
+      "archived": false,
+      "githubLicenseIdentifier": "Apache-2.0",
+      "readmeUrl": "https://github.com/smallnest/notex/blob/be5469be6974376df9e9b24793b61407e1ec318a/README.md",
+      "licenseUrl": "https://github.com/smallnest/notex/blob/be5469be6974376df9e9b24793b61407e1ec318a/LICENSE",
+      "licenseFinding": "Apache-2.0",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    },
+    {
+      "repo": "amicalhq/prismical",
+      "url": "https://github.com/amicalhq/prismical",
+      "branch": "main",
+      "commit": "b9387e446cf0e567bf130edfb0bb6035a3aad5df",
+      "commitDate": "2026-10-02T23:20:59Z",
+      "archived": false,
+      "githubLicenseIdentifier": "MIT",
+      "readmeUrl": "https://github.com/amicalhq/prismical/blob/b9387e446cf0e567bf130edfb0bb6035a3aad5df/README.md",
+      "licenseUrl": "https://github.com/amicalhq/prismical/blob/b9387e446cf0e567bf130edfb0bb6035a3aad5df/LICENSE",
+      "licenseFinding": "MIT",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    },
+    {
+      "repo": "hetvishah208/VideoRAG",
+      "url": "https://github.com/hetvishah208/VideoRAG",
+      "branch": "main",
+      "commit": "7fe0aa8e7faac617a28fc3a6dd3d5a6ee2f3db81",
+      "commitDate": "2026-06-28T20:39:18Z",
+      "archived": false,
+      "githubLicenseIdentifier": "MIT",
+      "readmeUrl": "https://github.com/hetvishah208/VideoRAG/blob/7fe0aa8e7faac617a28fc3a6dd3d5a6ee2f3db81/README.md",
+      "licenseUrl": "https://github.com/hetvishah208/VideoRAG/blob/7fe0aa8e7faac617a28fc3a6dd3d5a6ee2f3db81/LICENSE",
+      "licenseFinding": "MIT",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    },
+    {
+      "repo": "HKUDS/VideoRAG",
+      "url": "https://github.com/HKUDS/VideoRAG",
+      "branch": "main",
+      "commit": "c412a093a820ef7a0e0dda31076ed871136198b3",
+      "commitDate": "2026-03-18T08:33:03Z",
+      "archived": false,
+      "githubLicenseIdentifier": "NOASSERTION",
+      "readmeUrl": "https://github.com/HKUDS/VideoRAG/blob/c412a093a820ef7a0e0dda31076ed871136198b3/README.md",
+      "licenseUrl": "https://github.com/HKUDS/VideoRAG/blob/c412a093a820ef7a0e0dda31076ed871136198b3/LICENSE",
+      "licenseFinding": "Custom dual license: framework architecture MIT; integrated ImageBind implementation has noncommercial conditions",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    },
+    {
+      "repo": "lfnovo/open-notebook",
+      "url": "https://github.com/lfnovo/open-notebook",
+      "branch": "main",
+      "commit": "a0f6f3081ae06328f0a451b3a3ef2959ca25721d",
+      "commitDate": "2026-10-05T02:29:29Z",
+      "archived": false,
+      "githubLicenseIdentifier": "MIT",
+      "readmeUrl": "https://github.com/lfnovo/open-notebook/blob/a0f6f3081ae06328f0a451b3a3ef2959ca25721d/README.md",
+      "licenseUrl": "https://github.com/lfnovo/open-notebook/blob/a0f6f3081ae06328f0a451b3a3ef2959ca25721d/LICENSE",
+      "licenseFinding": "MIT",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    },
+    {
+      "repo": "screenpipe/screenpipe",
+      "url": "https://github.com/screenpipe/screenpipe",
+      "branch": "main",
+      "commit": "5d84243ab130270c951543846f87fdec367cf19a",
+      "commitDate": "2026-10-24T01:38:14Z",
+      "archived": false,
+      "githubLicenseIdentifier": "NOASSERTION",
+      "readmeUrl": "https://github.com/screenpipe/screenpipe/blob/5d84243ab130270c951543846f87fdec367cf19a/README.md",
+      "licenseUrl": "https://github.com/screenpipe/screenpipe/blob/5d84243ab130270c951543846f87fdec367cf19a/LICENSE.md",
+      "licenseFinding": "Screenpipe Commercial License; not treated as a permissive open-source dependency",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    },
+    {
+      "repo": "reorproject/reor",
+      "url": "https://github.com/reorproject/reor",
+      "branch": "main",
+      "commit": "9b47fcaf1158cedda1f0160392de25588efe4c31",
+      "commitDate": "2025-05-13T21:28:59Z",
+      "archived": true,
+      "githubLicenseIdentifier": "AGPL-3.0",
+      "readmeUrl": "https://github.com/reorproject/reor/blob/9b47fcaf1158cedda1f0160392de25588efe4c31/README.md",
+      "licenseUrl": "https://github.com/reorproject/reor/blob/9b47fcaf1158cedda1f0160392de25588efe4c31/LICENSE",
+      "licenseFinding": "AGPL-3.0",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    },
+    {
+      "repo": "getchalk/chalk",
+      "url": "https://github.com/getchalk/chalk",
+      "branch": "main",
+      "commit": "baa5b2b4fb50adaa0162d224eeeb85fa49f08512",
+      "commitDate": "2026-10-12T11:54:11Z",
+      "archived": false,
+      "githubLicenseIdentifier": null,
+      "readmeUrl": "https://github.com/getchalk/chalk/blob/baa5b2b4fb50adaa0162d224eeeb85fa49f08512/README.md",
+      "licenseUrl": null,
+      "licenseFinding": "README claims MIT; root LICENSE and LICENSE.md unavailable at checked commit; do not import code yet",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    },
+    {
+      "repo": "JefferyHcool/BiliNote",
+      "url": "https://github.com/JefferyHcool/BiliNote",
+      "branch": "master",
+      "commit": "90940fde4d224d0f69ad99674f4af0a1ea52d3c4",
+      "commitDate": null,
+      "archived": null,
+      "githubLicenseIdentifier": "MIT",
+      "readmeUrl": "https://github.com/JefferyHcool/BiliNote/blob/90940fde4d224d0f69ad99674f4af0a1ea52d3c4/README.md",
+      "licenseUrl": "https://github.com/JefferyHcool/BiliNote/blob/90940fde4d224d0f69ad99674f4af0a1ea52d3c4/LICENSE",
+      "licenseFinding": "MIT",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    },
+    {
+      "repo": "iOfficeAI/AionUi",
+      "url": "https://github.com/iOfficeAI/AionUi",
+      "branch": "main",
+      "commit": "11cd2a9a20d1e033157636efc570b41384c66d85",
+      "commitDate": null,
+      "archived": null,
+      "githubLicenseIdentifier": "Apache-2.0",
+      "readmeUrl": "https://github.com/iOfficeAI/AionUi/blob/11cd2a9a20d1e033157636efc570b41384c66d85/readme.md",
+      "licenseUrl": "https://github.com/iOfficeAI/AionUi/blob/11cd2a9a20d1e033157636efc570b41384c66d85/LICENSE",
+      "licenseFinding": "Apache-2.0",
+      "inspection": "Official repository metadata, README and actual license when present; no installation or runtime verification"
+    }
+  ],
+  "sampledSourceFiles": [
+    {
+      "repo": "hetvishah208/VideoRAG",
+      "path": "backend/searcher.py",
+      "url": "https://github.com/hetvishah208/VideoRAG/blob/7fe0aa8e7faac617a28fc3a6dd3d5a6ee2f3db81/backend/searcher.py"
+    },
+    {
+      "repo": "getchalk/chalk",
+      "path": "src/engine/journal.py",
+      "url": "https://github.com/getchalk/chalk/blob/baa5b2b4fb50adaa0162d224eeeb85fa49f08512/src/engine/journal.py"
+    },
+    {
+      "repo": "lfnovo/open-notebook",
+      "path": "open_notebook/domain/notebook.py",
+      "url": "https://github.com/lfnovo/open-notebook/blob/a0f6f3081ae06328f0a451b3a3ef2959ca25721d/open_notebook/domain/notebook.py"
+    },
+    {
+      "repo": "getchalk/chalk",
+      "path": "src/vision/slide_filter.py",
+      "url": "https://github.com/getchalk/chalk/blob/baa5b2b4fb50adaa0162d224eeeb85fa49f08512/src/vision/slide_filter.py"
+    }
+  ],
+  "officialComponentSources": [
+    {
+      "component": "Electron WebContentsView",
+      "url": "https://www.electronjs.org/docs/latest/api/web-contents-view"
+    },
+    {
+      "component": "Electron tab audio capture",
+      "url": "https://www.electronjs.org/docs/latest/api/session#sessetdisplaymediarequesthandlerhandler-opts"
+    },
+    {
+      "component": "Electron page capture",
+      "url": "https://www.electronjs.org/docs/latest/api/web-contents#contentscapturepagerect-opts"
+    },
+    {
+      "component": "Electron security",
+      "url": "https://github.com/electron/electron/blob/main/docs/tutorial/security.md"
+    },
+    {
+      "component": "CodeMirror",
+      "url": "https://github.com/codemirror/dev",
+      "note": "Repository README announces move to code.haverbeke.berlin/codemirror/dev"
+    },
+    {
+      "component": "PDF.js",
+      "url": "https://github.com/mozilla/pdf.js",
+      "license": "Apache-2.0"
+    },
+    {
+      "component": "whisper.cpp",
+      "url": "https://github.com/ggml-org/whisper.cpp",
+      "license": "MIT"
+    },
+    {
+      "component": "Vercel AI SDK",
+      "url": "https://ai-sdk.dev/docs/ai-sdk-core/tools-and-tool-calling",
+      "license": "Apache-2.0"
+    },
+    {
+      "component": "SQLite FTS5",
+      "url": "https://www.sqlite.org/fts5.html"
+    },
+    {
+      "component": "better-sqlite3",
+      "url": "https://github.com/WiseLibs/better-sqlite3"
+    },
+    {
+      "component": "electron-vite",
+      "url": "https://electron-vite.org/guide/"
+    },
+    {
+      "component": "electron-builder",
+      "url": "https://www.electron.build/",
+      "note": "Root docs indicated next v27 unreleased; use stable docs/version when implementing"
+    },
+    {
+      "component": "FFmpeg licensing",
+      "url": "https://ffmpeg.org/legal.html"
+    },
+    {
+      "component": "remark",
+      "url": "https://github.com/remarkjs/remark"
+    },
+    {
+      "component": "KaTeX",
+      "url": "https://github.com/KaTeX/KaTeX"
+    },
+    {
+      "component": "yt-dlp",
+      "url": "https://github.com/yt-dlp/yt-dlp"
+    }
+  ],
+  "localPlugin": {
+    "sourcePath": "D:\\Codex\\OpenAI-Codex-data\\plugins\\codex-bilibili-video-observer",
+    "packageVersion": "0.4.0",
+    "manifestVersion": "0.4.0+codex.20260831081152",
+    "existingTests": {
+      "command": "node --test tests/*.test.mjs",
+      "tests": 25,
+      "passed": 25,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "plugin-baseline-2026-10-25.txt"
+    },
+    "validation": {
+      "command": "node tests/validate-plugin.mjs",
+      "exitCode": 0
+    },
+    "targetedReproduction": {
+      "missingFeatureSceneCuts": [
+        {
+          "scene": 1,
+          "sceneCut": true
+        },
+        {
+          "scene": 2,
+          "sceneCut": true
+        },
+        {
+          "scene": 3,
+          "sceneCut": true
+        }
+      ],
+      "fingerprintAfterNormalization": {
+        "hash": null,
+        "pixels": null,
+        "metrics": {}
+      },
+      "parsedPart": {
+        "url": "https://www.bilibili.com/video/BV123?p=2",
+        "bvid": "BV123",
+        "cid": "2"
+      }
+    },
+    "sourceModified": false,
+    "realBilibiliPlaybackTested": false
+  },
+  "limitations": [
+    "GitHub anonymous tree API hit a rate limit; inspection used official HTML and pinned raw files instead of a complete recursive tree audit",
+    "Third-party project functionality was not runtime verified",
+    "Electron tab audio, native ABI, ASR accuracy, performance and real model integration are future acceptance tasks"
+  ]
+}

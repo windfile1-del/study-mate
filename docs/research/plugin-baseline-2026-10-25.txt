@@ -1,0 +1,33 @@
+✔ frame archive stores one persistent folder per video and restores frame data (40.5855ms)
+✔ samples a bounded, deterministic set of historical timestamps (4.5199ms)
+✔ samples the full video duration for a whole-video overview (0.3669ms)
+✔ chooses a duration-aware HD frame count within the safe bound (0.2308ms)
+✔ backfill stays metadata-only when media fetching is disabled (0.5339ms)
+✔ background extraction returns frames without exposing the media URL (1.0353ms)
+✔ temporal index merges independent FFmpeg frames and deduplicates timestamps (5.9609ms)
+✔ backfill plan reports the read-only background mode (0.298ms)
+✔ loopback bridge accepts sanitized observations and rejects credentials (99.0015ms)
+✔ page observer is a read-only capture script (1.4545ms)
+✔ page observer physically downsizes preview pixels before sending (2.9386ms)
+✔ observer control builds a local start command without playback controls (2.7575ms)
+✔ observer control maps pause, resume, stop, and status to page-observer modes (0.2954ms)
+✔ observer control rejects non-loopback CDP endpoints and invalid capture settings (1.062ms)
+✔ MCP server exposes high-level read-only video tools (2853.0697ms)
+✔ normalizes a Bilibili snapshot and redacts credential query keys (2.5904ms)
+✔ preserves actual preview dimensions and source dimensions (0.8137ms)
+✔ foreground player view is immutable (0.4209ms)
+✔ Bilibili adapter rejects non-Bilibili pages (0.3028ms)
+✔ information preservation keeps low resolution and detail-heavy source frames (0.2388ms)
+✔ adaptive sampler changes rate for scene and motion (0.2123ms)
+✔ frame comparison detects duplicates and scene changes (0.4318ms)
+✔ subtitle timeline parses, searches, and ranges on the same time axis (1.5236ms)
+✔ ring buffer automatically covers old preview entries (0.3982ms)
+✔ temporal index joins snapshot, subtitles, OCR, preview, and HQ evidence (3.1075ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3064.5588
