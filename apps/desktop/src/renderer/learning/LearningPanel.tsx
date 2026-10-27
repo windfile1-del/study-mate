@@ -31,6 +31,7 @@ export function LearningPanel({
   onClose,
   onOpenNote,
   onVideo,
+  onDocument,
   onAskImage,
 }: {
   state: AppState | null;
@@ -38,6 +39,7 @@ export function LearningPanel({
   onClose: () => void;
   onOpenNote: (p: string) => void;
   onVideo: (id: string, time: number) => void;
+  onDocument?: (id: string, page?: number) => void;
   onAskImage: (source: OcrResult['source']) => void;
 }) {
   const [tab, setTab] = useState<'audio' | 'ocr' | 'search'|'video'>('audio'),
