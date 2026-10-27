@@ -149,7 +149,7 @@ export function MermaidDiagram({ source }: { source: string }) {
               <button aria-label="缩小图表" onClick={() => setScale((value) => Math.max(0.5, value - 0.25))}>
                 <Minus size={16} />
               </button>
-              <span>{Math.round(scale * 100)}%</span >
+              <span>{Math.round(scale * 100)}%</span>
               <button aria-label="放大一级" onClick={() => setScale((value) => Math.min(3, value + 0.25))}>
                 <Plus size={16} />
               </button>
