@@ -1,5 +1,5 @@
-import {LearningPanel} from './learning/LearningPanel';
-import {parseVideoCitation,type OcrResult} from '../shared/recognition';
+import { LearningPanel } from './learning/LearningPanel';
+import { parseVideoCitation, type OcrResult } from '../shared/recognition';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NotePane } from './workspace/NotePane';
 import { useNoteDesk } from './workspace/useNoteDesk';
@@ -32,8 +32,6 @@ import {
   LoaderCircle,
   PanelLeftClose,
   Plus,
-  RefreshCw,
-  Save,
   Search,
   ShieldCheck,
   Sparkles,
@@ -42,7 +40,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import type { AppState, NoteDocument, NoteFile, SearchHit, TaskStatus } from '../shared/contracts';
+import type { AppState, NoteFile, SearchHit, TaskStatus } from '../shared/contracts';
 
 const api = window.studyMate;
 const time = (seconds: number) =>
@@ -88,8 +86,12 @@ export default function App() {
   const [error, setError] = useState('');
   const [collapsed, setCollapsed] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [learningOpen,setLearningOpen]=useState(false);
-  const [aiDraft,setAiDraft]=useState<{id:string;text:string;image?:{vaultId:string;path:string}}>();
+  const [learningOpen, setLearningOpen] = useState(false);
+  const [aiDraft, setAiDraft] = useState<{
+    id: string;
+    text: string;
+    image?: { vaultId: string; path: string };
+  }>();
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
   const [aiHasMessages, setAiHasMessages] = useState(false);
   const desk = useNoteDesk(state?.vaultId, setError);
@@ -99,7 +101,8 @@ export default function App() {
   const [switchingVault, setSwitchingVault] = useState(false);
   const navigation = useRef<(target: string, wiki: boolean, base: string, pane: Pane) => void>(() => {});
   const navigate = useCallback(
-    (target: string, wiki: boolean, base: string, pane: Pane) => navigation.current(target, wiki, base, pane),
+    (target: string, wiki: boolean, base: string, pane: Pane) =>
+      navigation.current(target, wiki, base, pane),
     [],
   );
   const [leftWidth, setLeftWidth] = useState(() => readLayout().left);
@@ -111,22 +114,67 @@ export default function App() {
   const [docActive, setDocActive] = useState<Record<Pane, string | null>>({ main: null, side: null });
   const [docPage, setDocPage] = useState<Record<string, number>>({});
   const [docContext, setDocContext] = useState<DocumentContext>();
+
   const activateDocument = (id: string, page?: number, pane: Pane = 'main') => {
-    setDocTabs((prev) => ({ ...prev, [pane]: prev[pane].includes(id) ? prev[pane] : [...prev[pane], id] }));
+    setDocTabs((prev) => ({
+      ...prev,
+      [pane]: prev[pane].includes(id) ? prev[pane] : [...prev[pane], id],
+    }));
     setDocActive((prev) => ({ ...prev, [pane]: id }));
     if (page) setDocPage((prev) => ({ ...prev, [id]: page }));
     if (pane === 'main') setMode('document');
     else setDockActive('document');
   };
-  const openVideoEvidence=async(id:string,time:number)=>{try{if(state?.activeBinding?.sourceId!==id)await api.openSource(id);setVideoLocation('main');setMode('browser');await api.player({action:'seek',time});}catch(e){setError(textOf(e));}};
-  const askOriginalImage=(source:OcrResult['source'])=>{
-    if(source.kind==='image'&&source.vaultId&&source.vaultId!==state?.vaultId){setError('知识库已切换，请重新选择原图');return;}
-    let text='请以原图为准分析内容，复杂公式和模糊区域说明不确定性，不要仅凭 OCR 参考文字下结论。';
-    if(source.kind==='document'){activateDocument(source.id,source.page||1);text+='请调用 view_document_page 查看文档 '+source.id+' 第'+(source.page||1)+'页'+(source.region?'，选区 '+JSON.stringify(source.region):'')+'。';}
-    else if(source.kind==='video'){void openVideoEvidence(source.id,source.time||0);text+='请调用 analyze_video 查看原视频 '+source.id+' 在 '+(source.time||0).toFixed(2)+' 秒附近的真实画面。';}
-    else text+='请调用 view_image 读取知识库图片路径：'+JSON.stringify(source.id)+'。';
-    setAiDraft({id:crypto.randomUUID(),text,image:source.kind==='image'&&!source.id.startsWith('frame:')?{vaultId:source.vaultId||state?.vaultId||'',path:source.id}:undefined});setLearningOpen(false);
+
+  const openVideoEvidence = async (id: string, targetTime: number) => {
+    try {
+      if (state?.activeBinding?.sourceId !== id) await api.openSource(id);
+      setVideoLocation('main');
+      setMode('browser');
+      await api.player({ action: 'seek', time: targetTime });
+    } catch (e) {
+      setError(textOf(e));
+    }
   };
+
+  const askOriginalImage = (source: OcrResult['source']) => {
+    if (source.kind === 'image' && source.vaultId && source.vaultId !== state?.vaultId) {
+      setError('知识库已切换，请重新选择原图');
+      return;
+    }
+    let text = '请以原图为准分析内容，复杂公式和模糊区域说明不确定性，不要仅凭 OCR 参考文字下结论。';
+    if (source.kind === 'document') {
+      activateDocument(source.id, source.page || 1);
+      text +=
+        '请调用 view_document_page 查看文档 ' +
+        source.id +
+        ' 第' +
+        (source.page || 1) +
+        '页' +
+        (source.region ? '，选区 ' + JSON.stringify(source.region) : '') +
+        '。';
+    } else if (source.kind === 'video') {
+      void openVideoEvidence(source.id, source.time || 0);
+      text +=
+        '请调用 analyze_video 查看原视频 ' +
+        source.id +
+        ' 在 ' +
+        (source.time || 0).toFixed(2) +
+        ' 秒附近的真实画面。';
+    } else {
+      text += '请调用 view_image 读取知识库图片路径：' + JSON.stringify(source.id) + '。';
+    }
+    setAiDraft({
+      id: crypto.randomUUID(),
+      text,
+      image:
+        source.kind === 'image' && !source.id.startsWith('frame:')
+          ? { vaultId: source.vaultId || state?.vaultId || '', path: source.id }
+          : undefined,
+    });
+    setLearningOpen(false);
+  };
+
   const openDocument = async () => {
     try {
       const doc = await api.chooseDocument();
@@ -135,6 +183,7 @@ export default function App() {
       setError(textOf(e));
     }
   };
+
   const closeDocument = (id: string, pane: Pane) => {
     const remaining = docTabs[pane].filter((x) => x !== id);
     setDocTabs((prev) => ({ ...prev, [pane]: remaining }));
@@ -147,6 +196,7 @@ export default function App() {
     }
     if (docContext?.id === id) setDocContext(undefined);
   };
+
   const moveDocument = (id: string, from: Pane, to: Pane) => {
     if (from === to) {
       activateDocument(id, undefined, to);
@@ -159,6 +209,7 @@ export default function App() {
       setMode(state?.activeBinding && videoLocation === 'main' ? 'browser' : document ? 'note' : 'home');
     }
   };
+
   const documentTabs = (pane: Pane) =>
     docTabs[pane].map((id) => (
       <button
@@ -189,6 +240,7 @@ export default function App() {
         </span>
       </button>
     ));
+
   const [dragging, setDragging] = useState(false),
     [resizing, setResizing] = useState(false);
   const tabGesture = useRef<{
@@ -214,6 +266,7 @@ export default function App() {
       consumeTabClick.current = false;
     }, 0);
   }, []);
+
   useEffect(() => {
     const move = (event: PointerEvent) => {
       const drag = tabGesture.current;
@@ -261,6 +314,7 @@ export default function App() {
       window.removeEventListener('dragend', endGesture);
     };
   }, [endGesture]);
+
   const dockOpen =
     dockActive === 'video'
       ? videoLocation === 'side' && Boolean(state?.activeBinding)
@@ -268,6 +322,7 @@ export default function App() {
         ? Boolean(docActive.side)
         : Boolean(desk.desk.side.active);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
   useEffect(() => {
     if (
       dockActive !== 'document' &&
@@ -277,14 +332,17 @@ export default function App() {
     )
       setDockActive('video');
   }, [desk.desk.side.active, videoLocation, state?.activeBinding]);
+
   useEffect(() => {
     if (mode === 'note' && !document && !loadingNote) setMode('home');
   }, [mode, document, loadingNote]);
+
   useEffect(() => {
     const resize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', resize);
     return () => window.removeEventListener('resize', resize);
   }, []);
+
   useEffect(() => {
     const timer = setTimeout(
       () =>
@@ -296,6 +354,7 @@ export default function App() {
     );
     return () => clearTimeout(timer);
   }, [leftWidth, rightWidth, studyHeight]);
+
   const dragTab = (
     event: React.PointerEvent<HTMLElement>,
     kind: 'note' | 'video' | 'document',
@@ -316,6 +375,7 @@ export default function App() {
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
+
   const dockNote = (path: string, from: Pane) => {
     const to: Pane = from === 'main' ? 'side' : 'main';
     desk.move(path, from, to);
@@ -328,12 +388,14 @@ export default function App() {
       setMode('note');
     }
   };
+
   const dockVideo = () => {
     setVideoLocation('side');
     setDockActive('video');
     setRightWidth(Math.max(400, Math.round((window.innerWidth - leftWidth) * 0.45)));
     setMode(document ? 'note' : 'home');
   };
+
   gestureDrop.current = (kind, path, from, to) => {
     if (kind === 'document') {
       moveDocument(path, from, to);
@@ -350,6 +412,7 @@ export default function App() {
       }
     }
   };
+
   const dropTab = (event: React.DragEvent, to: Pane) => {
     event.preventDefault();
     setDragging(false);
@@ -369,6 +432,7 @@ export default function App() {
       }
     } catch {}
   };
+
   const [rangeStart, setRangeStart] = useState('0');
   const [rangeEnd, setRangeEnd] = useState('');
   const [frameCount, setFrameCount] = useState('6');
@@ -389,6 +453,7 @@ export default function App() {
     void refresh();
     return api.onChanged(() => void refresh());
   }, [refresh]);
+
   useEffect(() => {
     void api
       .setDirty({
@@ -399,9 +464,11 @@ export default function App() {
       })
       .catch(() => {});
   }, [dirty, desk.desk.sessions]);
+
   useEffect(() => {
     if (state?.activeBinding?.url) setAddress(state.activeBinding.url);
   }, [state?.activeBinding?.url]);
+
   useEffect(() => {
     let live = true;
     void api.listNotes().then(
@@ -414,6 +481,7 @@ export default function App() {
       live = false;
     };
   }, [state?.vaultId, state?.vaultRevision]);
+
   useEffect(() => {
     const generation = ++searchGeneration.current;
     if (!search.trim()) {
@@ -429,7 +497,8 @@ export default function App() {
       );
     }, 250);
     return () => clearTimeout(timer);
-  }, [search, state?.vaultRevision,state?.knowledge?.files,state?.knowledge?.embedding]);
+  }, [search, state?.vaultRevision, state?.knowledge?.files, state?.knowledge?.embedding]);
+
   useLayoutEffect(() => {
     const update = () => {
       const rect = browserBox.current?.getBoundingClientRect();
@@ -478,6 +547,7 @@ export default function App() {
     state?.activeBinding?.visitId,
     state?.vaultId,
   ]);
+
   useEffect(() => {
     const beforeClose = (event: BeforeUnloadEvent) => {
       if (dirty) {
@@ -555,8 +625,13 @@ export default function App() {
   };
   const openFolder = (relative?: string) =>
     void api.openFolder(relative).catch((cause) => setError(textOf(cause)));
+
   navigation.current = (target, wiki, base, pane) => {
-    const video=parseVideoCitation(target);if(video){void openVideoEvidence(video.id,video.time);return;}
+    const video = parseVideoCitation(target);
+    if (video) {
+      void openVideoEvidence(video.id, video.time);
+      return;
+    }
     const citation = parseDocumentCitation(target);
     if (citation) {
       activateDocument(citation.id, citation.page, pane);
@@ -578,6 +653,7 @@ export default function App() {
       (cause) => setError(textOf(cause)),
     );
   };
+
   const analyze = async () => {
     setError('');
     try {
@@ -590,6 +666,7 @@ export default function App() {
       setError(textOf(cause));
     }
   };
+
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (helpOpen || learningOpen || aiSettingsOpen || desk.closing) return;
@@ -630,6 +707,7 @@ export default function App() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   });
+
   const source = state?.sources.find((s) => s.id === state.activeBinding?.sourceId);
   const playback = state?.playback;
   const running = state?.tasks.some((t) => t.status === 'running' || t.status === 'queued') || false;
@@ -649,12 +727,12 @@ export default function App() {
         {node.isInternal ? (
           <>
             <ChevronRight size={13} className={node.isOpen ? 'rotated' : ''} />
-            <Folder size={15} />
+            <Folder size={14} className="folder-icon" />
           </>
         ) : (
           <>
             <span className="tree-spacer" />
-            <FileText size={15} />
+            <FileText size={14} className="note-icon" />
           </>
         )}
         <span>{node.data.name.replace(/\.md$/i, '')}</span>
@@ -662,6 +740,7 @@ export default function App() {
       </div>
     );
   }
+
   return (
     <div
       onClickCapture={(event) => {
@@ -687,7 +766,7 @@ export default function App() {
       <aside className="sidebar">
         <div className="brand">
           <span className="brand-mark">
-            <Leaf size={23} strokeWidth={1.8} />
+            <Leaf size={20} strokeWidth={2} />
           </span>
           <div>
             <strong>Study Mate</strong>
@@ -695,9 +774,24 @@ export default function App() {
           </div>
         </div>
         <div className="space-label">
-          个人学习空间 <ChevronDown size={13} />
+          <span>个人学习空间</span>
+          <ChevronDown size={13} />
         </div>
         <nav>
+          <button
+            className={mode === 'home' ? 'nav-item active' : 'nav-item'}
+            onClick={() => setMode('home')}
+          >
+            <LayoutDashboard size={16} />
+            学习工作台
+          </button>
+          <button
+            className={mode === 'browser' ? 'nav-item active' : 'nav-item'}
+            onClick={() => setMode('browser')}
+          >
+            <Globe2 size={16} />
+            课程浏览器{source && <span className="nav-dot" />}
+          </button>
           <div className="document-library">
             <button onClick={() => void openDocument()}>
               <FileText size={15} /> 打开 PDF / PowerPoint
@@ -708,22 +802,17 @@ export default function App() {
               </button>
             ))}
           </div>
-          <button
-            className={mode === 'home' ? 'nav-item active' : 'nav-item'}
-            onClick={() => setMode('home')}
-          >
-            <LayoutDashboard size={17} />
-            学习工作台
-          </button>
-          <button
-            className={mode === 'browser' ? 'nav-item active' : 'nav-item'}
-            onClick={() => setMode('browser')}
-          >
-            <Globe2 size={17} />
-            课程浏览器{source && <span className="nav-dot" />}
-          </button>
         </nav>
-        <div className="document-library"><button className="recognition-launch" onClick={()=>setLearningOpen(true)}><Sparkles size={15}/> 识别与全库检索</button><div className="knowledge-sidebar-status">索引 {state?.knowledge?.files.toLocaleString()||0} 篇 · {state?.knowledge?.phase==='scanning'?'后台扫描中':'全文可检索'}{state?.knowledge?.skipped?` · 跳过 ${state.knowledge.skipped} 篇`:null}</div></div>
+        <div className="document-library">
+          <button className="recognition-launch" onClick={() => setLearningOpen(true)}>
+            <Sparkles size={15} /> 识别与全库检索
+          </button>
+          <div className="knowledge-sidebar-status">
+            索引 {state?.knowledge?.files.toLocaleString() || 0} 篇 ·{' '}
+            {state?.knowledge?.phase === 'scanning' ? '后台扫描中' : '全文可检索'}
+            {state?.knowledge?.skipped ? ` · 跳过 ${state.knowledge.skipped} 篇` : null}
+          </div>
+        </div>
         <div className="library-actions">
           <button onClick={() => void importNotes()}>
             <ArrowDownToLine size={14} />
@@ -770,7 +859,7 @@ export default function App() {
               data={notes}
               width={Math.max(145, leftWidth - 28)}
               height={280}
-              rowHeight={34}
+              rowHeight={32}
               indent={14}
               openByDefault
               disableDrag
@@ -807,7 +896,7 @@ export default function App() {
         </div>
         <div className="sidebar-bottom">
           <div className="local-label">
-            <ShieldCheck size={15} />
+            <ShieldCheck size={14} />
             <span>笔记保存在本地</span>
             <span className="connected-dot" />
           </div>
@@ -817,7 +906,7 @@ export default function App() {
             title={state?.vaultPath}
             disabled={switchingVault}
           >
-            <FolderOpen size={16} />
+            <FolderOpen size={15} />
             <span>{switchingVault ? '正在索引…' : '切换知识库'}</span>
             <ArrowUpRight size={13} />
           </button>
@@ -842,7 +931,7 @@ export default function App() {
               aria-label={collapsed ? '展开侧栏' : '收起侧栏'}
               onClick={() => setCollapsed(!collapsed)}
             >
-              <PanelLeftClose size={18} />
+              <PanelLeftClose size={17} />
             </button>
             <span className="breadcrumb">
               工作空间 <ChevronRight size={13} />{' '}
@@ -857,6 +946,14 @@ export default function App() {
                         ? '视频解析'
                         : '课程浏览器'}
               </strong>
+              {mode === 'note' && document && (
+                <span className="breadcrumb-sub">{document.path.split('/').pop()}</span>
+              )}
+              {mode === 'document' && docActive.main && (
+                <span className="breadcrumb-sub">
+                  {state?.documents?.find((d) => d.id === docActive.main)?.title}
+                </span>
+              )}
             </span>
           </div>
           <div className="topbar-right">
@@ -865,7 +962,7 @@ export default function App() {
               本地工作台已连接
             </span>
             <button className="icon-button" aria-label="使用说明" onClick={() => setHelpOpen(!helpOpen)}>
-              <CircleHelp size={18} />
+              <CircleHelp size={17} />
             </button>
             <span className="avatar">学</span>
           </div>
@@ -983,124 +1080,131 @@ export default function App() {
             )}
             {mode === 'home' && (
               <div className="home">
-                <div className="eyebrow">
-                  <span />A LITTLE LEARNING, EVERY DAY
-                </div>
-                <h1>
-                  专注眼前这课，
-                  <br />
-                  留下真正理解的笔记<span>。</span>
-                </h1>
-                <p className="home-description">
-                  课程、上下文与笔记，在同一个地方。
-                  <br />
-                  让每一次「原来如此」，都有迹可循。
-                </p>
-                <form
-                  className="course-entry"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    void openWeb();
-                  }}
-                >
-                  <div className="entry-label">
-                    <span className="course-icon">
-                      <Video size={19} />
-                    </span>
-                    <div>
-                      <strong>从一段课程开始</strong>
-                      <small>粘贴 B站或含视频的网页地址</small>
-                    </div>
-                    <span className="light-badge">只读观察</span>
+                <div className="home-container">
+                  <div className="eyebrow">
+                    <span />A LITTLE LEARNING, EVERY DAY · AI-NATIVE WORKBENCH
                   </div>
-                  <div className="entry-input">
-                    <Globe2 size={17} />
-                    <input
-                      aria-label="课程地址"
-                      placeholder="https://www.bilibili.com/video/…"
-                      value={address}
-                      onChange={(event) => setAddress(event.target.value)}
-                    />
-                    <button type="submit" disabled={loadingWeb}>
-                      {loadingWeb ? (
-                        <LoaderCircle className="spin" size={16} />
-                      ) : (
-                        <>
-                          打开课程 <ArrowRight size={15} />
-                        </>
-                      )}
+                  <h1>
+                    专注眼前这课，
+                    <br />
+                    留下真正理解的笔记<span>。</span>
+                  </h1>
+                  <p className="home-description">
+                    阅读器的沉浸优雅、IDE 的多栏灵活与 AI 原生工作台的按需推理，融于同一处本地空间。
+                    <br />
+                    让每一次「原来如此」，都有迹可循。
+                  </p>
+                  <form
+                    className="course-entry"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void openWeb();
+                    }}
+                  >
+                    <div className="entry-label">
+                      <span className="course-icon">
+                        <Video size={19} />
+                      </span>
+                      <div>
+                        <strong>从一段课程开始</strong>
+                        <small>粘贴 B站或含视频的网页地址，开启无感伴学观察</small>
+                      </div>
+                      <span className="light-badge">只读观察</span>
+                    </div>
+                    <div className="entry-input">
+                      <Globe2 size={17} />
+                      <input
+                        aria-label="课程地址"
+                        placeholder="https://www.bilibili.com/video/…"
+                        value={address}
+                        onChange={(event) => setAddress(event.target.value)}
+                      />
+                      <button type="submit" disabled={loadingWeb}>
+                        {loadingWeb ? (
+                          <LoaderCircle className="spin" size={16} />
+                        ) : (
+                          <>
+                            打开课程 <ArrowRight size={15} />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <div className="entry-hint">
+                      <ShieldCheck size={13} />
+                      后台记录进度与画面，不改变你的播放操作
+                    </div>
+                  </form>
+                  <div className="quick-actions">
+                    <button onClick={() => void openLocal()}>
+                      <span className="action-icon green">
+                        <Video size={20} />
+                      </span>
+                      <strong>打开本地视频</strong>
+                      <small>内置播放与后台画面解析</small>
+                      <ArrowUpRight size={16} />
+                    </button>
+                    <button onClick={() => void importNotes()}>
+                      <span className="action-icon warm">
+                        <ArrowDownToLine size={20} />
+                      </span>
+                      <strong>导入 Markdown</strong>
+                      <small>保留原文件，同名自动创建副本</small>
+                      <ArrowUpRight size={16} />
+                    </button>
+                    <button onClick={() => void createNote()}>
+                      <span className="action-icon warm">
+                        <FilePlus2 size={20} />
+                      </span>
+                      <strong>写一篇新笔记</strong>
+                      <small>把刚刚想明白的记下来</small>
+                      <ArrowUpRight size={16} />
+                    </button>
+                    <button onClick={() => void chooseVault()}>
+                      <span className="action-icon green">
+                        <FolderOpen size={20} />
+                      </span>
+                      <strong>打开已有知识库</strong>
+                      <small>继续使用你的 Markdown 文件</small>
+                      <ArrowUpRight size={16} />
                     </button>
                   </div>
-                  <div className="entry-hint">
-                    <ShieldCheck size={13} />
-                    后台记录进度与画面，不改变你的播放操作
+                  <div className="learning-flow">
+                    <div>
+                      <span>01</span>
+                      <strong>阅读</strong>
+                      <small>保持自己的学习节奏</small>
+                    </div>
+                    <ChevronRight size={15} />
+                    <div>
+                      <span>02</span>
+                      <strong>理解</strong>
+                      <small>把提问落在具体进度</small>
+                    </div>
+                    <ChevronRight size={15} />
+                    <div>
+                      <span>03</span>
+                      <strong>沉淀</strong>
+                      <small>留下可继续编辑的笔记</small>
+                    </div>
                   </div>
-                </form>
-                <div className="quick-actions">
-                  <button onClick={() => void openLocal()}>
-                    <span className="action-icon green">
-                      <Video size={20} />
-                    </span>
-                    <strong>打开本地视频</strong>
-                    <small>内置播放与后台画面解析</small>
-                    <ArrowUpRight size={16} />
-                  </button>
-                  <button onClick={() => void importNotes()}>
-                    <span className="action-icon warm">
-                      <ArrowDownToLine size={20} />
-                    </span>
-                    <strong>导入 Markdown</strong>
-                    <small>保留原文件，同名自动创建副本</small>
-                    <ArrowUpRight size={16} />
-                  </button>
-                  <button onClick={() => void createNote()}>
-                    <span className="action-icon warm">
-                      <FilePlus2 size={20} />
-                    </span>
-                    <strong>写一篇新笔记</strong>
-                    <small>把刚刚想明白的记下来</small>
-                    <ArrowUpRight size={16} />
-                  </button>
-                  <button onClick={() => void chooseVault()}>
-                    <span className="action-icon green">
-                      <FolderOpen size={20} />
-                    </span>
-                    <strong>打开已有知识库</strong>
-                    <small>继续使用你的 Markdown 文件</small>
-                    <ArrowUpRight size={16} />
-                  </button>
-                </div>
-                <div className="learning-flow">
-                  <div>
-                    <span>01</span>
-                    <strong>阅读</strong>
-                    <small>保持自己的学习节奏</small>
+                  <div className="build-note">
+                    <Zap size={15} />
+                    <p>
+                      <strong>内置视频解析已就绪</strong>
+                      <span>
+                        笔记、视频、PDF/课件与 AI 问答已接入。点击右侧齿轮，选择 API 或 ChatGPT 订阅授权。
+                      </span>
+                    </p>
                   </div>
-                  <ChevronRight size={15} />
-                  <div>
-                    <span>02</span>
-                    <strong>理解</strong>
-                    <small>把提问落在具体进度</small>
-                  </div>
-                  <ChevronRight size={15} />
-                  <div>
-                    <span>03</span>
-                    <strong>沉淀</strong>
-                    <small>留下可继续编辑的笔记</small>
-                  </div>
-                </div>
-                <div className="build-note">
-                  <Zap size={15} />
-                  <p>
-                    <strong>内置视频解析已就绪</strong>
-                    <span>笔记、视频与 AI 问答已接入。点击右侧齿轮，选择 API 或 Codex 订阅。</span>
-                  </p>
                 </div>
               </div>
             )}
             {mode === 'analysis' && state?.analysis && (
               <section className="analysis-page">
-                <span className="eyebrow">NATIVE VIDEO ANALYSIS</span>
+                <span className="eyebrow">
+                  <span />
+                  NATIVE VIDEO ANALYSIS
+                </span>
                 <h1>视频解析</h1>
                 <p className="analysis-source">{state.analysis.title}</p>
                 <div className="analysis-meta">
@@ -1393,7 +1497,7 @@ export default function App() {
                     void api.captureContext().catch((cause) => setError(textOf(cause)));
                   }}
                 >
-                  {running ? <LoaderCircle size={16} className="spin" /> : <ArrowDownToLine size={16} />}
+                  {running ? <LoaderCircle size={15} className="spin" /> : <ArrowDownToLine size={15} />}
                   读取课程上下文
                   <ArrowRight size={14} />
                 </button>
@@ -1447,7 +1551,7 @@ export default function App() {
                     disabled={!state?.activeBinding || running}
                     onClick={() => void analyze()}
                   >
-                    <Video size={16} />
+                    <Video size={15} />
                     后台解析视频
                     <ArrowRight size={14} />
                   </button>
@@ -1521,7 +1625,7 @@ export default function App() {
             </details>
             <AiPanel
               externalPrompt={aiDraft}
-              onOpenVideo={(id,time)=>void openVideoEvidence(id,time)}
+              onOpenVideo={(id, targetTime) => void openVideoEvidence(id, targetTime)}
               documentContext={
                 mode === 'document' || (dockOpen && dockActive === 'document') ? docContext : undefined
               }
@@ -1547,6 +1651,8 @@ export default function App() {
           <span>
             <span className="connected-dot" />
             核心服务运行中
+            <span className="footer-separator">·</span>
+            <span>阅读 · IDE 多栏 · AI 原生工作台</span>
           </span>
           <span>
             {state?.version || '正在初始化…'}
@@ -1584,7 +1690,19 @@ export default function App() {
           </section>
         </div>
       )}
-      {learningOpen&&<LearningPanel onAskImage={askOriginalImage} state={state} note={desk.desk[desk.desk.focused].active} onClose={()=>setLearningOpen(false)} onOpenNote={path=>void openNote(path)} onVideo={(id,time)=>{setLearningOpen(false);void openVideoEvidence(id,time);}}/>}
+      {learningOpen && (
+        <LearningPanel
+          onAskImage={askOriginalImage}
+          state={state}
+          note={desk.desk[desk.desk.focused].active}
+          onClose={() => setLearningOpen(false)}
+          onOpenNote={(path) => void openNote(path)}
+          onVideo={(id, targetTime) => {
+            setLearningOpen(false);
+            void openVideoEvidence(id, targetTime);
+          }}
+        />
+      )}
       {helpOpen && (
         <div className="modal-overlay" onClick={() => setHelpOpen(false)}>
           <section
@@ -1619,8 +1737,8 @@ export default function App() {
             <p>
               打开本地视频或
               B站课程后，可在右侧解析指定范围画面，后台独立解码。受权限限制的视频及部分编码可能不可解析，可继续读取已观察的上下文。右侧齿轮可设置模型，支持
-              API 与 ChatGPT 订阅 SIWC。左侧可打开 PDF 或 PowerPoint，按页提问并点回来源；扫描页尚无自动
-              OCR，语音转录尚未接通。
+              API 与 ChatGPT 订阅 SIWC。左侧可打开 PDF 或 PowerPoint，按页提问并点回来源；本地采音、OCR
+              与全库检索可在「识别与全库检索」中使用。
             </p>
             <button className="primary" onClick={() => setHelpOpen(false)}>
               开始学习 <ArrowRight size={15} />
