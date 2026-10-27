@@ -32,6 +32,7 @@ import {
   LoaderCircle,
   PanelLeftClose,
   Plus,
+  Save,
   Search,
   ShieldCheck,
   Sparkles,
@@ -1697,6 +1698,10 @@ export default function App() {
           note={desk.desk[desk.desk.focused].active}
           onClose={() => setLearningOpen(false)}
           onOpenNote={(path) => void openNote(path)}
+          onDocument={(id, page) => {
+            setLearningOpen(false);
+            activateDocument(id, page);
+          }}
           onVideo={(id, targetTime) => {
             setLearningOpen(false);
             void openVideoEvidence(id, targetTime);
