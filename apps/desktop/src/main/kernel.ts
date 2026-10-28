@@ -12,8 +12,10 @@ import { atomicJson, readJson } from '../core/storage';
 import { DocumentRegistry } from '../core/document-registry';
 import {KnowledgeIndex} from '../core/knowledge-index';
 import {RecognitionStore} from '../core/recognition-store';
+import{AnnotationStore}from'../core/annotations';
 
 export class AppKernel extends EventEmitter {
+  readonly annotations:AnnotationStore;
   readonly sources: SourceRegistry;
   readonly tasks: TaskManager;
   readonly learning: LearningService;
@@ -32,6 +34,7 @@ export class AppKernel extends EventEmitter {
   constructor(readonly dataDir: string) {
     super();
     this.configFile = path.join(dataDir, 'state', 'workspace.json');
+    this.annotations=new AnnotationStore(path.join(dataDir,'annotations'));
     this.documents = new DocumentRegistry(path.join(dataDir, 'documents'));
     this.index=new KnowledgeIndex(path.join(dataDir,'indexes'),new URL('./knowledge-worker.js',import.meta.url));
     this.recognition=new RecognitionStore(path.join(dataDir,'recognition'));
@@ -67,7 +70,7 @@ export class AppKernel extends EventEmitter {
         expectedVersion: null,
         operationId: 'welcome-v1',
         content:
-          '# 欢迎来到 Study Mate\n\n这里是你的本地学习知识库。笔记是普通 Markdown 文件，也可在 Obsidian 中打开。\n\n## 开始学习\n\n1. 打开本地视频或 B站课程。\n2. 在右侧设置连接模型，支持主流 API 与 ChatGPT 订阅 SIWC。\n3. 勾选笔记路径后提问，AI 按需读取所需行，不自动发送整库。\n4. 开启「允许保存」后，可让 AI 精确修改、保存或插图；现有原文自动备份。\n5. 使用「图片」导入本地图片，或让支持视觉的模型分析指定视频片段并把画面写入笔记。\n\n工具过程可展开查看；抽帧不代表看完整段视频，当前没有音轨转写。\n',
+          '# 欢迎来到 Study Mate\n\n这里是你的本地学习知识库。笔记是普通 Markdown 文件，也可在 Obsidian 中打开。\n\n## 开始学习\n\n1. 打开本地视频或 B站课程。\n2. 在右侧设置连接模型，支持主流 API 与 ChatGPT 订阅 SIWC。\n3. 当前可见的笔记、课件或视频会自动附加路径/页码，左右并排时附加两份。AI 按需读取，不自动发送全文。\n4. 开启「允许保存」后，可让 AI 精确修改、保存或插图；现有原文自动备份。\n5. 使用「图片」导入本地图片，或让支持视觉的模型分析指定视频片段并把画面写入笔记。\n\n工具过程可展开查看；抽帧不代表看完整段视频，播放器的“音频转文字”可采集课程音轨，和已有字幕开关相互独立。\n',
       });
     }
   }
@@ -93,7 +96,7 @@ export class AppKernel extends EventEmitter {
   }
   state(): AppState {
     return {
-      version: '0.10.0-video',
+      version: '0.14.0',
       dataDir: this.dataDir,
       vaultPath: this.vault.root,
       vaultId: this.vault.id,
@@ -136,5 +139,6 @@ export class AppKernel extends EventEmitter {
     await this.documents.close();
     await this.index.close();
     await this.recognition.close();
+    await this.annotations.close();
   }
 }

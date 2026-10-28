@@ -11,6 +11,10 @@ async function call<T>(channel: string, input?: unknown): Promise<T> {
   return result.value;
 }
 const bridge: StudyMateBridge = {
+  library:input=>call(CHANNELS.library,input),
+  panel:input=>call(CHANNELS.panel,input),
+  onPanelEvent:listener=>{const handler=(_event:unknown,value:import('../shared/panels').PanelEvent)=>listener(value);ipcRenderer.on(CHANNELS.panelEvent,handler);return()=>ipcRenderer.removeListener(CHANNELS.panelEvent,handler);},
+  annotation:input=>call(CHANNELS.annotation,input),
   videoCache:input=>call(CHANNELS.videoCache,input),
   ai: (input) => call('ai:request', input),
   state: () => call(CHANNELS.state),

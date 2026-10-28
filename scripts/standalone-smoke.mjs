@@ -50,7 +50,7 @@ try {
       ? ['polish']
       : workspaceOnly
         ? ['workspace-ai']
-        : ['video', 'chinese', 'learning', 'notes', 'media', 'workspace-ai', 'polish', 'documents']) {
+        : ['reader', 'video', 'chinese', 'learning', 'notes', 'media', 'workspace-ai', 'polish', 'documents']) {
     const log = createWriteStream(path.join(root, '.cache/standalone-' + name + '.log'));
     const env = { ...process.env, STUDYMATE_PACKED_EXE: executable };
     const child = spawn(process.execPath, [path.join(root, 'scripts', name + '-smoke.mjs'), '--packed'], {

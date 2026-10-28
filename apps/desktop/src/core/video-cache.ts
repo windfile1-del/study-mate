@@ -8,7 +8,9 @@ import {
   type VideoCacheState,
 } from '../shared/video-cache';
 export class VideoCacheManager {
-  private timer: ReturnType<typeof setInterval> | undefined;
+  private timer: ReturnType<typeof setTimeout> | undefined;
+  private nextExpiry:number|undefined;
+  private closed=false;
   private writes = new SerialQueue();
   readonly state: VideoCacheState = {
     settings: { ...defaultVideoCache },
@@ -28,26 +30,28 @@ export class VideoCacheManager {
   async initialize() {
     await fs.mkdir(this.root, { recursive: true });
     const saved = await readJson(path.join(this.root, 'video-cache-settings.json'), defaultVideoCache);
-    const checked = videoCacheSettings.safeParse(saved);
+    const checked = videoCacheSettings.safeParse({...saved,retentionHours:Math.min(24,(saved as any).retentionHours||24)});
     this.state.settings = checked.success ? checked.data : { ...defaultVideoCache };
     this.schedule();
     // Inventory and expiry checks must not delay opening the workspace.
     void this.clean();
   }
   private schedule() {
-    if (this.timer) clearInterval(this.timer);
-    const delay = this.state.settings.cleanupMinutes * 60000;
+    if(this.closed)return;
+    if (this.timer) clearTimeout(this.timer);
+    const delay = Math.max(50,Math.min(this.state.settings.cleanupMinutes * 60000,(this.nextExpiry||Infinity)-Date.now()));
     this.state.nextCleanup = new Date(Date.now() + delay).toISOString();
-    this.timer = setInterval(() => {
+    this.timer = setTimeout(() => {
       void this.clean();
     }, delay);
     this.timer.unref();
   }
+  noteFrame(at=Date.now()){const expiry=at+this.state.settings.retentionHours*3600000;if(!this.nextExpiry||expiry<this.nextExpiry){this.nextExpiry=expiry;this.schedule();}}
   async configure(settings: VideoCacheSettings) {
     this.state.settings = videoCacheSettings.parse(settings);
     await atomicJson(path.join(this.root, 'video-cache-settings.json'), this.state.settings);
     this.schedule();
-    return structuredClone(this.state);
+    return this.clean();
   }
   clean() {
     return this.writes.run(async () => {
@@ -112,6 +116,7 @@ export class VideoCacheManager {
           } catch {}
         }
         this.onRemoved(removed);
+        const future=rows.filter(row=>!removed.has(row.file)).map(row=>row.at+this.state.settings.retentionHours*3600000).filter(at=>at>Date.now()+100);this.nextExpiry=future.length?Math.min(...future):undefined;
         Object.assign(this.state, {
           lastCleanup: new Date().toISOString(),
           removed: removed.size,
@@ -123,15 +128,14 @@ export class VideoCacheManager {
         this.state.error = (e as Error).message;
       } finally {
         this.state.cleaning = false;
-        this.state.nextCleanup = new Date(
-          Date.now() + this.state.settings.cleanupMinutes * 60000,
-        ).toISOString();
+        this.schedule();
       }
       return structuredClone(this.state);
     });
   }
   async close() {
-    if (this.timer) clearInterval(this.timer);
+    this.closed=true;
+    if (this.timer) clearTimeout(this.timer);
     await this.writes.flush();
   }
 }

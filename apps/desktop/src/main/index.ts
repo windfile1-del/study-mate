@@ -15,6 +15,7 @@ import { NoteAssets } from './note-assets';
 import { DocumentService } from './documents';
 import {RecognitionService} from './recognition';
 import {RecognitionEngine} from './recognition-engine';
+import{FloatingPanels}from'./floating-panels';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = requireDDrive(process.env.STUDYMATE_DATA_DIR || 'D:\\StudyMateData');
@@ -104,6 +105,7 @@ async function boot(): Promise<void> {
   const media = new MediaController(kernel, gateway, internalUrl('native-decoder.html'));
   const documents = new DocumentService(kernel.documents, internalUrl('document-engine.html'));
   const recognition=new RecognitionService(kernel,browser,documents,media,new RecognitionEngine(internalUrl('recognition-engine.html')));
+  const panels=new FloatingPanels(window,trustedUrl,path.join(here,'../preload/shell.cjs'),kernel.dataDir);
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', (event, target) => {
     if (target.split('#')[0] !== trustedUrl.split('#')[0]) event.preventDefault();
@@ -121,6 +123,7 @@ async function boot(): Promise<void> {
     assets,
     documents,
     recognition,
+    panels,
   );
   let notification: ReturnType<typeof setTimeout> | undefined;
   kernel.on('changed', () => {
@@ -128,6 +131,7 @@ async function boot(): Promise<void> {
     notification = setTimeout(() => {
       notification = undefined;
       if (window && !window.isDestroyed()) window.webContents.send(CHANNELS.changed);
+      panels.notify();
     }, 80);
   });
   window.on('close', (event) => {

@@ -1,0 +1,313 @@
+.navigation-panel .brand {
+  position: relative;
+}
+.navigation-popout {
+  margin-left: auto;
+  color: var(--ink-tertiary);
+  padding: 6px;
+  border-radius: 7px;
+}
+.navigation-popout:hover {
+  background: var(--surface-hover);
+  color: var(--accent);
+}
+.navigation-global {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 14px;
+}
+.navigation-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--surface-subtle);
+  border: 1px solid var(--line);
+  padding: 3px;
+  border-radius: 10px;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.navigation-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 7px;
+  padding: 8px 3px;
+  font-size: 12px;
+  color: var(--ink-tertiary);
+}
+.navigation-tabs button[aria-selected='true'] {
+  background: var(--surface-paper);
+  color: var(--accent);
+  box-shadow: var(--shadow-xs);
+  font-weight: 600;
+}
+.navigation-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 19px 7px 11px;
+  font-size: 12px;
+}
+.navigation-section-heading span {
+  color: var(--ink-tertiary);
+  background: var(--surface-subtle);
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 10px;
+}
+.navigation-actions {
+  display: flex;
+  gap: 6px;
+  margin: 0 2px 12px;
+}
+.navigation-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 9px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-glass-strong);
+  border-radius: 8px;
+  color: var(--ink-secondary);
+  font-size: 11px;
+}
+.navigation-actions button:first-child {
+  flex: 1;
+}
+.navigation-actions button:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+.navigation-panel .search {
+  margin-bottom: 10px;
+}
+.navigation-resource-list {
+  flex: 1;
+  min-height: 100px;
+  overflow: auto;
+}
+.resource-list {
+  display: grid;
+  gap: 6px;
+  padding: 2px;
+}
+.resource-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 7px;
+  text-align: left;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  width: 100%;
+}
+.resource-card:hover {
+  background: var(--surface-active);
+  border-color: var(--accent-border);
+}
+.resource-card > span:last-child {
+  min-width: 0;
+  flex: 1;
+}
+.resource-card strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-secondary);
+}
+.resource-card small {
+  display: block;
+  font-size: 10px;
+  color: var(--ink-tertiary);
+  margin-top: 5px;
+}
+.resource-format {
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  min-width: 34px;
+  height: 36px;
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.resource-format.pdf {
+  background: var(--warm-bg);
+  color: var(--warm-ink);
+}
+.navigation-empty {
+  padding: 18px 8px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--ink-tertiary);
+}
+.navigation-tools {
+  flex-shrink: 0;
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+  padding-top: 10px;
+  display: grid;
+  gap: 5px;
+}
+.navigation-tools > button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  padding: 8px;
+  border-radius: 7px;
+  text-align: left;
+  color: var(--ink-secondary);
+}
+.navigation-tools > button:hover {
+  background: var(--surface-hover);
+  color: var(--accent);
+}
+.navigation-tools > small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 9px;
+  color: var(--ink-muted);
+  padding: 0 8px;
+}
+.panel-layout-actions {
+  display: flex !important;
+  gap: 4px !important;
+  align-items: center;
+}
+.panel-layout-actions button {
+  padding: 7px;
+  border-radius: 7px;
+  color: var(--ink-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+.panel-layout-actions button:hover,
+.panel-layout-actions button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.app.ai-panel-hidden .companion,
+.app.ai-panel-hidden .companion-resizer {
+  display: none !important;
+}
+.app.sidebar-collapsed > .navigation-panel {
+  width: 0;
+  min-width: 0;
+  visibility: hidden;
+  pointer-events: none;
+  padding: 0;
+  border: 0;
+}
+.floating-host {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-mesh);
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+}
+.floating-header {
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 13px;
+  background: var(--surface-glass-strong);
+  border-bottom: 1px solid var(--line);
+  -webkit-app-region: drag;
+  user-select: none;
+}
+.floating-header strong {
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+.floating-header > div {
+  display: flex;
+  gap: 3px;
+  -webkit-app-region: no-drag;
+}
+.floating-header button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--ink-tertiary);
+}
+.floating-header button:hover,
+.floating-header button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.floating-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+.floating-body > .navigation-panel {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.floating-body > .ai-panel {
+  width: 100%;
+  min-height: 0;
+}
+.floating-host.pinned {
+  border-color: var(--accent-border);
+}
+.floating-note-context {
+  font-size: 10px;
+  padding: 6px 14px;
+  color: var(--ink-tertiary);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.app.ai-panel-hidden [aria-label='调整右侧宽度'] {
+  display: none !important;
+}
+
+.floating-body .ai-welcome {
+  min-height: 0;
+  padding: 16px 12px;
+  gap: 10px;
+}
+.floating-body .ai-welcome-mark {
+  display: none;
+}
+.floating-body .ai-welcome h3 {
+  font-size: 15px;
+}
+.floating-body .ai-welcome p {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 4px 0;
+}
+.floating-body .ai-privacy {
+  display: none;
+}
+@media (max-height: 600px) {
+  .floating-body .ai-welcome p,
+  .floating-body .ai-quick-controls > small {
+    display: none;
+  }
+  .floating-body .ai-composer textarea {
+    min-height: 48px;
+    height: 60px;
+  }
+}

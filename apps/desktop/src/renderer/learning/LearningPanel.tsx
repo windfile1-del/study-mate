@@ -256,6 +256,7 @@ export function LearningPanel({
               </div>
               <details className="optional-ocr">
                 <summary>可选：提取本地 OCR 参考文字</summary>
+                <p>仅建议用于清晰的印刷文字。公式、函数图像、图表和模糊板书请使用“让 AI 看原图”；可在模型设置中单独接入视觉模型。</p>
                 <div className="learning-grid">
                   <button
                     className="learning-card learning-action"

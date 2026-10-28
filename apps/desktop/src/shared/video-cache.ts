@@ -2,7 +2,7 @@ import { z } from 'zod';
 export const videoCacheSettings = z
   .object({
     enabled: z.boolean(),
-    retentionHours: z.number().int().min(1).max(720),
+    retentionHours: z.number().int().min(1).max(24),
     maxMegabytes: z.number().int().min(32).max(2048),
     cleanupMinutes: z.number().int().min(1).max(1440),
   })
@@ -10,9 +10,9 @@ export const videoCacheSettings = z
 export type VideoCacheSettings = z.infer<typeof videoCacheSettings>;
 export const defaultVideoCache: VideoCacheSettings = {
   enabled: true,
-  retentionHours: 168,
+  retentionHours: 24,
   maxMegabytes: 512,
-  cleanupMinutes: 10,
+  cleanupMinutes: 60,
 };
 export const videoCacheRequest = z.discriminatedUnion('action', [
   z.object({ action: z.literal('state') }).strict(),

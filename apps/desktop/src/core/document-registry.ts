@@ -103,6 +103,7 @@ export class DocumentRegistry extends EventEmitter {
   list() {
     return this.entries.map((d) => structuredClone(d)).reverse();
   }
+  async remove(id:string){return this.queue.run(async()=>{this.get(id);const next=this.entries.filter(d=>d.id!==id);await atomicJson(path.join(this.root,'library.json'),next);this.entries=next;this.emit('changed');});}
   get(id: string) {
     const d = this.entries.find((d) => d.id === id);
     if (!d) throw Error('文档未注册，请先通过“打开文档”选择文件。');

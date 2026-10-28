@@ -65,7 +65,7 @@ async function open(input: { id: string; url: string; kind: string; password?: s
   for (let index = 0; index < Math.min(ppt.slideCount, 500); index++) {
     const slide = await ppt.extractSlide(index);
     outline.push({
-      title: (slide.title || slide.textShapes?.[0]?.text || `幻灯片 ${index + 1}`).slice(0, 150),
+      title: (String(slide.title||'').trim() || slide.textShapes?.find((s:any)=>String(s.text||'').trim().length>2&&!/^\d+$/.test(String(s.text).trim()))?.text || `幻灯片 ${index + 1}`).trim().split('\n')[0].slice(0, 150),
       page: index + 1,
       depth: 0,
     });

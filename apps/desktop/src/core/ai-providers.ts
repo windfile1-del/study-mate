@@ -104,7 +104,7 @@ export function apiRequest(
   c: AiConfig,
   key: string,
   messages: PromptMessage[],
-  options?: { tools?: AiToolDefinition[] },
+  options?: { tools?: AiToolDefinition[];cacheKey?:string },
 ) {
   endpoint(c.baseUrl);
   const base = c.baseUrl.replace(/\/+$/, '');
@@ -137,10 +137,10 @@ export function apiRequest(
     url = base + '/messages';
     body = {
       model: c.model,
-      system: messages
+      system: [{type:'text',cache_control:{type:'ephemeral'},text:messages
         .filter((m) => m.role === 'system')
         .map((m) => m.content)
-        .join('\n'),
+        .join('\n')}],
       messages: claudeInput(messages),
       max_tokens: c.maxOutput,
       stream: true,
@@ -213,6 +213,7 @@ export function apiRequest(
       target.cache_control = { type: 'ephemeral' };
     }
   }
+  if(c.preset==='openai'&&['responses','chat'].includes(c.protocol)&&options?.cacheKey)body.prompt_cache_key=options.cacheKey;
   return { url, headers, body };
 }
 export async function* sse(response: Response): AsyncGenerator<any> {
@@ -262,7 +263,7 @@ export async function streamApi(
   signal: AbortSignal,
   onText: (text: string) => void,
   onUsage: (u: AiUsage) => void,
-  session?: { project?: string; fetcher?: typeof fetch; tools?: AiToolDefinition[] },
+  session?: { project?: string; fetcher?: typeof fetch; tools?: AiToolDefinition[];cacheKey?:string },
 ): Promise<ProviderResult> {
   const req = apiRequest(c, key, messages, session);
   if (c.protocol === 'antigravity') {

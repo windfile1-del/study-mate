@@ -1,3 +1,6 @@
+import{LibraryManager}from'./workspace/LibraryManager';import{visibleResources,type WorkspaceResource}from'../shared/workspace-context';
+import {NavigationPanel,type NavigationAction} from './workspace/NavigationPanel';
+import {PanelRightClose,ExternalLink as PanelPopout} from 'lucide-react';
 import { LearningPanel } from './learning/LearningPanel';
 import { parseVideoCitation, type OcrResult } from '../shared/recognition';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -85,12 +88,16 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [error, setError] = useState('');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(()=>localStorage.getItem('study-sidebar-hidden-v2')==='true');
+  const [assistantMode,setAssistantMode]=useState<'docked'|'hidden'|'floating'>(()=>{const saved=localStorage.getItem('study-assistant-mode-v2');return saved==='hidden'||saved==='floating'?saved:'docked';});
+  const [navigationFloating,setNavigationFloating]=useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [learningOpen, setLearningOpen] = useState(false);
   const [aiDraft, setAiDraft] = useState<{
     id: string;
     text: string;
+    instruction?: string;
+    sourceLabel?: string;
     image?: { vaultId: string; path: string };
   }>();
   const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
@@ -115,6 +122,9 @@ export default function App() {
   const [docActive, setDocActive] = useState<Record<Pane, string | null>>({ main: null, side: null });
   const [docPage, setDocPage] = useState<Record<string, number>>({});
   const [docContext, setDocContext] = useState<DocumentContext>();
+  const[docContexts,setDocContexts]=useState<Record<string,DocumentContext>>({});
+  const[libraryOpen,setLibraryOpen]=useState(false),[libraryPath,setLibraryPath]=useState<string|undefined>();
+  useEffect(()=>{const open=(event:Event)=>{setLibraryPath((event as CustomEvent).detail?.path);setLibraryOpen(true);};window.addEventListener('study-library-manage',open);return()=>window.removeEventListener('study-library-manage',open);},[]);
 
   const activateDocument = (id: string, page?: number, pane: Pane = 'main') => {
     setDocTabs((prev) => ({
@@ -122,7 +132,7 @@ export default function App() {
       [pane]: prev[pane].includes(id) ? prev[pane] : [...prev[pane], id],
     }));
     setDocActive((prev) => ({ ...prev, [pane]: id }));
-    if (page) setDocPage((prev) => ({ ...prev, [id]: page }));
+    if (page) setDocPage((prev) => ({ ...prev, [pane+':'+id]: page }));
     if (pane === 'main') setMode('document');
     else setDockActive('document');
   };
@@ -167,7 +177,9 @@ export default function App() {
     }
     setAiDraft({
       id: crypto.randomUUID(),
-      text,
+      text: source.kind === 'document' ? '请解释这页课件的重点与公式。' : source.kind === 'video' ? '请分析这段课程画面并解释重点。' : '请分析这张图片，解释其中的内容。',
+      instruction: text,
+      sourceLabel: source.kind === 'document' ? '课件 · 第'+(source.page||1)+'页' : source.kind === 'video' ? '课程画面 · '+(source.time||0).toFixed(1)+'秒' : '已选择的原图',
       image:
         source.kind === 'image' && !source.id.startsWith('frame:')
           ? { vaultId: source.vaultId || state?.vaultId || '', path: source.id }
@@ -200,7 +212,7 @@ export default function App() {
 
   const moveDocument = (id: string, from: Pane, to: Pane) => {
     if (from === to) {
-      activateDocument(id, undefined, to);
+      activateDocument(id, docPage[from+':'+id], to);
       return;
     }
     closeDocument(id, from);
@@ -501,7 +513,10 @@ export default function App() {
   }, [search, state?.vaultRevision, state?.knowledge?.files, state?.knowledge?.embedding]);
 
   useLayoutEffect(() => {
+    let suspended=false;
     const update = () => {
+      if(resizing&&suspended)return;
+      if(resizing)suspended=true;
       const rect = browserBox.current?.getBoundingClientRect();
       void api
         .setBrowserBounds({
@@ -511,14 +526,15 @@ export default function App() {
           height: rect?.height || 0,
           visible:
             ((videoLocation === 'main' && mode === 'browser') ||
-              (videoLocation === 'side' && dockOpen && dockActive === 'video')) &&
+              (videoLocation === 'side' && assistantMode === 'docked' && dockOpen && dockActive === 'video')) &&
             !helpOpen &&
             !learningOpen &&
+            !libraryOpen &&
             !aiSettingsOpen &&
             !dragging &&
             !resizing &&
             !desk.closing &&
-            !window.document.querySelector('.diagram-modal,.modal-overlay'),
+            !window.document.querySelector('.diagram-modal,.modal-overlay,.composer-popover'),
         })
         .catch(() => {});
     };
@@ -536,8 +552,10 @@ export default function App() {
   }, [
     mode,
     collapsed,
+    assistantMode,
     helpOpen,
     learningOpen,
+    libraryOpen,
     aiSettingsOpen,
     videoLocation,
     dockActive,
@@ -548,6 +566,7 @@ export default function App() {
     state?.activeBinding?.visitId,
     state?.vaultId,
   ]);
+  useEffect(()=>{if(!resizing)window.dispatchEvent(new Event('study-layout-settled'));},[resizing]);
 
   useEffect(() => {
     const beforeClose = (event: BeforeUnloadEvent) => {
@@ -742,6 +761,20 @@ export default function App() {
     );
   }
 
+  const navigationAction=(target:NavigationAction,id?:string,page?:number)=>{
+    if(target==='manage'){setLibraryPath(undefined);setLibraryOpen(true);}else if(target==='home')setMode('home');else if(target==='browser')setMode('browser');else if(target==='note'&&id)void openNote(id);else if(target==='document'&&id)activateDocument(id,page);else if(target==='video'&&id)void openVideoEvidence(id,page||0);else if(target==='import-notes')void importNotes();else if(target==='create-note')void createNote();else if(target==='vault')void chooseVault();else if(target==='learning')setLearningOpen(true);else if(target==='open-folder')openFolder();else if(target==='open-document')void openDocument();else if(target==='open-local')void openLocal();else if(target==='note-changed'&&id&&desk.desk.sessions[id]&&!isDirty(desk.desk.sessions[id]))void desk.reload(id);
+  };
+  const resource=(pane:Pane):WorkspaceResource|undefined=>{const kind=pane==='main'?mode:dockActive;if(kind==='note'){const path=desk.desk[pane].active;if(path)return{kind:'note',path,vaultId:state?.vaultId||''};}if(kind==='document'){const id=docActive[pane],doc=state?.documents.find(d=>d.id===id);if(id&&doc)return{kind:'document',context:docContexts[pane+':'+id]||{id,revision:doc.revision,page:docPage[pane+':'+id]||doc.lastPage||1}};}if((kind==='browser'&&videoLocation==='main')||(kind==='video'&&videoLocation==='side')){const id=state?.activeBinding?.sourceId;if(id&&state?.playback?.sourceId===id&&state.playback.duration>0)return{kind:'video',sourceId:id};}};
+  const autoResources=visibleResources({main:resource('main'),side:resource('side'),sideVisible:assistantMode==='docked'&&dockOpen});
+  const panelNavigation=useRef(navigationAction);panelNavigation.current=navigationAction;
+  useEffect(()=>api.onPanelEvent(event=>{if(event.type==='navigate'&&event.target)panelNavigation.current(event.target as NavigationAction,event.id,event.page);if(event.type==='closed'||event.type==='dock'){if(event.kind==='assistant')setAssistantMode(event.type==='dock'?'docked':'hidden');if(event.kind==='navigation'){setNavigationFloating(false);setCollapsed(event.type!=='dock');}}}),[]);
+  useEffect(()=>{localStorage.setItem('study-sidebar-hidden-v2',String(collapsed));localStorage.setItem('study-assistant-mode-v2',assistantMode);},[collapsed,assistantMode]);
+  useEffect(()=>{void api.panel({action:'context',context:{workspace:autoResources,note:desk.desk[desk.desk.focused].active,vaultId:state?.vaultId||'',dirtyPaths:Object.entries(desk.desk.sessions).filter(([,s])=>isDirty(s)).map(([p])=>p),document:mode==='document'||(dockOpen&&dockActive==='document')?docContext:undefined,externalPrompt:assistantMode==='floating'?aiDraft:undefined}}).catch(e=>setError(textOf(e)));},[state?.vaultId,desk.desk.focused,desk.desk.main.active,desk.desk.side.active,dirty,docContext,JSON.stringify(autoResources),aiDraft,assistantMode,mode,dockOpen,dockActive]);
+  useEffect(()=>{if(assistantMode==='floating')void api.panel({action:'open',kind:'assistant'}).catch(e=>setError(textOf(e)));},[assistantMode]);
+  const floatNavigation=()=>{setCollapsed(true);setNavigationFloating(true);void api.panel({action:'open',kind:'navigation'}).catch(e=>setError(textOf(e)));};
+  const toggleNavigation=()=>{if(navigationFloating)void api.panel({action:'dock',kind:'navigation'});else setCollapsed(!collapsed);};
+  const toggleAssistant=()=>{if(assistantMode==='floating')void api.panel({action:'dock',kind:'assistant'});else setAssistantMode(assistantMode==='docked'?'hidden':'docked');};
+
   return (
     <div
       onClickCapture={(event) => {
@@ -752,7 +785,7 @@ export default function App() {
         }
       }}
       className={
-        'app ' +
+        'app ' + (assistantMode!=='docked'?'ai-panel-hidden ':'') +
         (collapsed ? 'sidebar-collapsed ' : '') +
         (resizing ? 'resizing ' : '') +
         (dockOpen ? 'has-study-dock' : '')
@@ -760,163 +793,16 @@ export default function App() {
       style={
         {
           '--sidebar': collapsed ? '0px' : leftWidth + 'px',
+          '--study-height': studyHeight+'px',
           '--companion': Math.min(rightWidth, windowWidth - (collapsed ? 0 : leftWidth) - 330) + 'px',
         } as CSSProperties
       }
     >
-      <aside className="sidebar">
-        <div className="brand">
-          <span className="brand-mark">
-            <Leaf size={20} strokeWidth={2} />
-          </span>
-          <div>
-            <strong>Study Mate</strong>
-            <span>让理解，慢慢生长</span>
-          </div>
-        </div>
-        <div className="space-label">
-          <span>个人学习空间</span>
-          <ChevronDown size={13} />
-        </div>
-        <nav>
-          <button
-            className={mode === 'home' ? 'nav-item active' : 'nav-item'}
-            onClick={() => setMode('home')}
-          >
-            <LayoutDashboard size={16} />
-            学习工作台
-          </button>
-          <button
-            className={mode === 'browser' ? 'nav-item active' : 'nav-item'}
-            onClick={() => setMode('browser')}
-          >
-            <Globe2 size={16} />
-            课程浏览器{source && <span className="nav-dot" />}
-          </button>
-          <div className="document-library">
-            <button onClick={() => void openDocument()}>
-              <FileText size={15} /> 打开 PDF / PowerPoint
-            </button>
-            {state?.documents?.slice(0, 12).map((d) => (
-              <button key={d.id} title={d.title} onClick={() => activateDocument(d.id, d.lastPage)}>
-                {d.kind.toUpperCase()} · {d.title}
-              </button>
-            ))}
-          </div>
-        </nav>
-        <div className="document-library">
-          <button className="recognition-launch" onClick={() => setLearningOpen(true)}>
-            <Sparkles size={15} /> 识别与全库检索
-          </button>
-          <div className="knowledge-sidebar-status">
-            索引 {state?.knowledge?.files.toLocaleString() || 0} 篇 ·{' '}
-            {state?.knowledge?.phase === 'scanning' ? '后台扫描中' : '全文可检索'}
-            {state?.knowledge?.skipped ? ` · 跳过 ${state.knowledge.skipped} 篇` : null}
-          </div>
-        </div>
-        <div className="library-actions">
-          <button onClick={() => void importNotes()}>
-            <ArrowDownToLine size={14} />
-            导入 Markdown
-          </button>
-          <button aria-label="打开笔记存储目录" title="打开笔记存储目录" onClick={() => openFolder()}>
-            <FolderOpen size={15} />
-          </button>
-        </div>
-        <div className="section-label">
-          <span>
-            我的知识库 <b>{noteCount(notes)}</b>
-          </span>
-          <button aria-label="新建笔记" title="新建笔记" onClick={() => void createNote()}>
-            <Plus size={15} />
-          </button>
-        </div>
-        <label className="search">
-          <Search size={14} />
-          <input
-            aria-label="搜索笔记"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="搜索笔记…"
-          />
-          <kbd>⌕</kbd>
-        </label>
-        <div className="file-list">
-          {search ? (
-            <div className="search-results">
-              {hits.map((hit) => (
-                <button key={hit.path} onClick={() => void openNote(hit.path)}>
-                  <FileText size={15} />
-                  <div>
-                    <strong>{hit.name.replace(/\.md$/i, '')}</strong>
-                    <small>{hit.snippet}</small>
-                  </div>
-                </button>
-              ))}
-              {!hits.length && <p className="muted small">没有匹配的笔记</p>}
-            </div>
-          ) : (
-            <Tree
-              data={notes}
-              width={Math.max(145, leftWidth - 28)}
-              height={280}
-              rowHeight={32}
-              indent={14}
-              openByDefault
-              disableDrag
-              disableDrop
-              disableEdit
-              onActivate={(node) => {
-                if (node.isLeaf) void openNote(node.data.path);
-              }}
-            >
-              {FileNode}
-            </Tree>
-          )}
-        </div>
-        <div className="section-label">
-          <span>最近学习</span>
-          <Clock3 size={13} />
-        </div>
-        <div className="recent-list">
-          {state?.sources.slice(0, 3).map((item) => (
-            <button
-              key={item.id}
-              title={item.title}
-              onClick={() => {
-                setMode('browser');
-                void api.openSource(item.id).then(setState, (cause) => setError(textOf(cause)));
-              }}
-            >
-              <Video size={14} />
-              <span>{item.title}</span>
-              <ArrowUpRight size={12} />
-            </button>
-          ))}
-          {!state?.sources.length && <p className="muted small">打开课程后，来源会保存在这里。</p>}
-        </div>
-        <div className="sidebar-bottom">
-          <div className="local-label">
-            <ShieldCheck size={14} />
-            <span>笔记保存在本地</span>
-            <span className="connected-dot" />
-          </div>
-          <button
-            className="vault-button"
-            onClick={() => void chooseVault()}
-            title={state?.vaultPath}
-            disabled={switchingVault}
-          >
-            <FolderOpen size={15} />
-            <span>{switchingVault ? '正在索引…' : '切换知识库'}</span>
-            <ArrowUpRight size={13} />
-          </button>
-          <small title={state?.vaultPath}>{state?.vaultPath || '正在连接知识库…'}</small>
-        </div>
-      </aside>
+      <NavigationPanel state={state} notes={notes} width={leftWidth} onAction={navigationAction} onFloat={floatNavigation}/>
+
       {!collapsed && (
         <ResizeHandle
-          label="调整目录宽度"
+          label="调整目录宽度" cssVariable="--sidebar" measure=".sidebar"
           value={leftWidth}
           min={180}
           max={Math.min(480, windowWidth * 0.4)}
@@ -930,10 +816,11 @@ export default function App() {
             <button
               className="icon-button"
               aria-label={collapsed ? '展开侧栏' : '收起侧栏'}
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={toggleNavigation}
             >
               <PanelLeftClose size={17} />
             </button>
+            <div className="panel-layout-actions">{collapsed&&<button aria-label="导航悬浮窗" title="打开导航浮窗" onClick={floatNavigation}><PanelPopout size={15}/></button>}<button aria-label={assistantMode==='docked'?'隐藏伴学工作台':'打开伴学工作台'} title={assistantMode==='docked'?'隐藏右侧工作台':'打开右侧工作台'} onClick={toggleAssistant}><PanelRightClose size={17}/></button><button aria-label="伴学悬浮窗" title="独立伴学浮窗，可移动、缩放与置顶" onClick={()=>setAssistantMode('floating')}><PanelPopout size={15}/></button></div>
             <span className="breadcrumb">
               工作空间 <ChevronRight size={13} />{' '}
               <strong>
@@ -1069,11 +956,11 @@ export default function App() {
                 onAskImage={askOriginalImage}
                 key={docActive.main}
                 id={docActive.main}
-                initialPage={docPage[docActive.main]}
+                initialPage={docPage['main:'+docActive.main]}
                 onContext={(value) => {
-                  setDocContext(value);
+                  setDocContext(value);setDocContexts(prev=>({...prev,['main:'+value.id]:value}));
                   setDocPage((prev) =>
-                    prev[value.id] === value.page ? prev : { ...prev, [value.id]: value.page },
+                    prev['main:'+value.id] === value.page ? prev : { ...prev, ['main:'+value.id]: value.page },
                   );
                 }}
                 onDock={() => moveDocument(docActive.main!, 'main', 'side')}
@@ -1332,7 +1219,7 @@ export default function App() {
             )}
           </main>
           <ResizeHandle
-            label="调整右侧宽度"
+            label="调整右侧宽度" cssVariable="--companion" measure=".companion"
             value={rightWidth}
             min={280}
             max={Math.max(320, windowWidth - (collapsed ? 0 : leftWidth) - 330)}
@@ -1353,7 +1240,7 @@ export default function App() {
               (videoLocation === 'side' && state?.activeBinding)) && (
               <div
                 className="study-dock"
-                style={{ height: studyHeight }}
+                style={{ height: 'var(--study-height)' }}
                 onPointerDown={() => desk.focus('side')}
               >
                 <div className="tabs side-tabs">
@@ -1418,11 +1305,11 @@ export default function App() {
                   <DocumentPane
                     key={docActive.side}
                     id={docActive.side}
-                    initialPage={docPage[docActive.side]}
+                    initialPage={docPage['side:'+docActive.side]}
                     onContext={(value) => {
-                      setDocContext(value);
+                      setDocContext(value);setDocContexts(prev=>({...prev,['side:'+value.id]:value}));
                       setDocPage((prev) =>
-                        prev[value.id] === value.page ? prev : { ...prev, [value.id]: value.page },
+                        prev['side:'+value.id] === value.page ? prev : { ...prev, ['side:'+value.id]: value.page },
                       );
                     }}
                     onDock={() => moveDocument(docActive.side!, 'side', 'main')}
@@ -1453,7 +1340,7 @@ export default function App() {
             )}
             {dockOpen && (
               <ResizeHandle
-                label="调整右侧学习区高度"
+                label="调整右侧学习区高度" cssVariable="--study-height" measure=".study-dock"
                 axis="y"
                 value={studyHeight}
                 min={180}
@@ -1625,7 +1512,8 @@ export default function App() {
               </div>
             </details>
             <AiPanel
-              externalPrompt={aiDraft}
+              workspace={autoResources}
+              externalPrompt={assistantMode==='docked'?aiDraft:undefined}
               onOpenVideo={(id, targetTime) => void openVideoEvidence(id, targetTime)}
               documentContext={
                 mode === 'document' || (dockOpen && dockActive === 'document') ? docContext : undefined
@@ -1708,6 +1596,7 @@ export default function App() {
           }}
         />
       )}
+      {libraryOpen&&state&&<LibraryManager state={state} path={libraryPath} onClose={()=>setLibraryOpen(false)} onRemoved={(kind,id)=>{if(kind==='note'){desk.close('main',id);desk.close('side',id);if(desk.desk.main.active===id)setMode('home');}if(kind==='document'){closeDocument(id,'main');closeDocument(id,'side');}}} onRestored={path=>{if(desk.desk.sessions[path])void desk.reload(path);}} onVideo={(id,time)=>void openVideoEvidence(id,time)}/>}
       {helpOpen && (
         <div className="modal-overlay" onClick={() => setHelpOpen(false)}>
           <section

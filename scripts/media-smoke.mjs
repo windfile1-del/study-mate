@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 const root = process.cwd();
 const packed = process.argv.includes('--packed');
 const packedExecutable =
-  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.10.0/win-unpacked/Study Mate.exe');
+  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.12.0/win-unpacked/Study Mate.exe');
 const development = process.argv.includes('--dev');
 const dataDir = path.join(root, '.cache', 'media-smoke-' + Date.now());
 const artifacts = path.join(
@@ -168,12 +168,14 @@ try {
   await fs.mkdir(existingVault);
   await fs.writeFile(path.join(existingVault, '已有.md'), '# 原有知识库');
   await selectPaths([existingVault]);
+  await page.getByRole('tab', { name: '笔记分类', exact: true }).click();
   await page.getByRole('button', { name: '切换知识库', exact: true }).click();
   await stateUntil((state) => state.vaultPath === existingVault);
   assert.equal(await fs.readFile(path.join(existingVault, '已有.md'), 'utf8'), '# 原有知识库');
   findings.checks.push('已有Markdown目录切换成功，原笔记保留');
   await selectPaths([videoFile]);
-  await page.getByRole('button', { name: /打开本地视频/ }).click();
+  await page.getByRole('tab', { name: '课程分类', exact: true }).click();
+  await page.getByRole('button', { name: '打开本地视频', exact: true }).click();
   const localState = await stateUntil((state) => state.playback?.duration > 3);
   const localSource = localState.activeBinding.sourceId;
   await app.evaluate(async ({ BrowserWindow }) => {

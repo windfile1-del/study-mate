@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import{FloatingHost}from'./workspace/FloatingHost';
 import './styles.css';
 import type { StudyMateBridge } from '../shared/contracts';
 
@@ -29,6 +30,6 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren, { error: st
 }
 createRoot(document.getElementById('root')!).render(
   <ErrorBoundary>
-    <App />
+    {['assistant','navigation'].includes(new URLSearchParams(location.search).get('panel')||'')?<FloatingHost kind={new URLSearchParams(location.search).get('panel') as 'assistant'|'navigation'}/>:<App />}
   </ErrorBoundary>,
 );

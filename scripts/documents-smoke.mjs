@@ -193,6 +193,7 @@ async function open(file) {
   await app.evaluate(({ dialog }, target) => {
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [target] });
   }, file);
+  await page.getByRole('tab', { name: '文档分类', exact: true }).click();
   await page.getByRole('button', { name: '打开 PDF / PowerPoint', exact: true }).click();
   await page
     .locator('main .document-title strong')
@@ -217,7 +218,7 @@ async function open(file) {
 }
 try {
   const executable =
-      process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.10.0/win-unpacked/Study Mate.exe'),
+      process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.12.0/win-unpacked/Study Mate.exe'),
     env = {
       ...process.env,
       STUDYMATE_DATA_DIR: data,
@@ -432,6 +433,7 @@ try {
       }),
     citationNote,
   );
+  await page.getByRole('tab', { name: '笔记分类', exact: true }).click();
   await page.getByRole('textbox', { name: '搜索笔记', exact: true }).fill('文档来源');
   await page.locator('.search-results button').filter({ hasText: '文档来源' }).first().click();
   await page.locator('.note-preview a').filter({ hasText: '讲义·第3页' }).click();
@@ -447,6 +449,7 @@ try {
   await app.evaluate(({ dialog }, target) => {
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [target] });
   }, protectedFile);
+  await page.getByRole('tab', { name: '文档分类', exact: true }).click();
   await page.getByRole('button', { name: '打开 PDF / PowerPoint', exact: true }).click();
   await page.locator('.document-locked').waitFor();
   await page.getByRole('textbox', { name: 'PDF密码', exact: true }).fill('incorrect');

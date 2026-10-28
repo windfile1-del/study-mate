@@ -1,0 +1,106 @@
+.vision-role-card {
+  padding: 22px;
+  border: 1px solid var(--accent-border);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--surface-paper), var(--accent-soft));
+  margin: 22px 0;
+}
+.vision-role-heading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.vision-role-heading > span {
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 12px;
+  border-radius: 12px;
+}
+.vision-role-heading h3 {
+  font-size: 16px;
+  color: var(--ink-primary);
+  margin-bottom: 5px;
+}
+.vision-role-heading p,
+.vision-role-help {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--ink-tertiary);
+  margin: 10px 0;
+}
+.vision-role-toggle {
+  display: flex !important;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px !important;
+}
+.vision-role-toggle input {
+  accent-color: var(--accent);
+  width: 16px !important;
+}
+.vision-role-card > label:not(.vision-role-toggle) {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 12px;
+  font-size: 12px;
+}
+.vision-role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.vision-role-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 12px;
+}
+.vision-role-card input,
+.vision-role-card select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-paper);
+  color: var(--ink-primary);
+  min-width: 0;
+}
+.vision-role-card small {
+  color: var(--ink-tertiary);
+  font-size: 11px;
+  font-weight: 400;
+}
+.vision-role-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+.vision-role-actions button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--accent);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 9px;
+}
+.vision-role-portal {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  color: var(--accent);
+  font-size: 12px;
+  margin-top: 12px;
+}
+.vision-turn-usage {
+  display: block;
+  margin-top: 6px;
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.vision-role-card .vision-role-toggle{flex-direction:row!important;justify-content:flex-start!important;text-align:left}

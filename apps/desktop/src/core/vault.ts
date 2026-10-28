@@ -9,6 +9,7 @@ import type { NoteDocument, NoteFile, SaveNoteInput, SearchHit, ImportReport } f
 import { AppError } from './errors';
 import { atomicJson, readJson, requireDDrive, SerialQueue } from './storage';
 import { linkCandidates, type NoteLink } from './note-links';
+import type{NoteBackup}from'../shared/library';
 
 const MAX_NOTE_BYTES = 2 * 1024 * 1024;
 const ignored = new Set(['.git', '.obsidian', '.studymate', 'node_modules']);
@@ -178,6 +179,7 @@ export class VaultService extends EventEmitter {
             .catch((error) => {
               if (error.code !== 'EEXIST') throw error;
             });
+          await this.recordBackup(input.path,current.version,current.content,'保存前自动备份');
           if ((await this.read(input.path)).version !== current.version)
             throw new AppError('CONFLICT', '保存前检测到外部修改，原文件未被覆盖。');
           try {
@@ -212,6 +214,27 @@ export class VaultService extends EventEmitter {
       return document;
     });
   }
+  get backupPath(){return path.join(this.stateDir,'backups',this.id);}
+  private async recordBackup(relative:string,version:string,content:string,reason:string){
+    await fs.mkdir(this.backupPath,{recursive:true});
+    await fs.writeFile(path.join(this.backupPath,version+'.md'),content,{encoding:'utf8',flag:'wx'}).catch(e=>{if(e.code!=='EEXIST')throw e;});
+    const entries=await readJson<NoteBackup[]>(path.join(this.backupPath,'index.json'),[]),id=version+'-'+hash(relative).slice(0,12);
+    if(!entries.some(e=>e.id===id))await atomicJson(path.join(this.backupPath,'index.json'),[...entries,{id,path:relative,version,createdAt:new Date().toISOString(),bytes:Buffer.byteLength(content),reason}]);
+  }
+  async backups(relative?:string){
+    if(relative)this.segments(relative);
+    const rows=await readJson<NoteBackup[]>(path.join(this.backupPath,'index.json'),[]),known=new Set(rows.map(r=>r.version));
+    for(const name of await fs.readdir(this.backupPath).catch(()=>[])){if(!/^[a-f0-9]{64}\.md$/.test(name)||known.has(name.slice(0,-3)))continue;const stat=await fs.stat(path.join(this.backupPath,name));rows.push({id:name.slice(0,-3),path:'',version:name.slice(0,-3),createdAt:stat.mtime.toISOString(),bytes:stat.size,reason:'旧版备份 · 原路径未记录，可恢复到指定笔记'});}
+    return rows.filter(r=>!relative||r.path===relative||!r.path).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
+  }
+  async restoreBackup(id:string,relative:string,version:string|null){
+    const row=(await this.backups()).find(r=>r.id===id);if(!row||!/^[a-f0-9]{64}$/.test(row.version))throw Error('备份不存在');
+    const file=path.join(this.backupPath,row.version+'.md');if((await fs.lstat(file)).isSymbolicLink())throw Error('备份路径异常');const content=await fs.readFile(file,'utf8');if(hash(content)!==row.version)throw Error('备份内容校验失败');
+    return this.write({path:relative,content,expectedVersion:version,operationId:'restore-'+randomUUID()});
+  }
+  async backupContent(id:string){const row=(await this.backups()).find(r=>r.id===id);if(!row||!/^[a-f0-9]{64}$/.test(row.version))throw Error('备份不存在');const file=path.join(this.backupPath,row.version+'.md');if((await fs.lstat(file)).isSymbolicLink())throw Error('备份路径异常');return(await fs.readFile(file,'utf8')).slice(0,60000);}
+  async cleanBackups(ids:string[]){return this.writes.run(async()=>{const all=await this.backups(),selected=all.filter(r=>ids.includes(r.id));if(selected.length!==new Set(ids).size)throw Error('所选备份已变化，请刷新');const keep=all.filter(r=>!ids.includes(r.id));for(const version of new Set(selected.map(r=>r.version))){if(!/^[a-f0-9]{64}$/.test(version))throw Error('备份版本异常');if(!keep.some(r=>r.version===version))await fs.unlink(path.join(this.backupPath,version+'.md'));}await atomicJson(path.join(this.backupPath,'index.json'),keep);});}
+  async remove(relative:string,version:string,trash:(absolute:string)=>Promise<void>){return this.writes.run(async()=>{const current=await this.read(relative);if(current.version!==version)throw Error('笔记已有修改，请刷新后删除');await this.recordBackup(relative,current.version,current.content,'删除前备份');const target=await this.checkedPath(relative);await trash(target);this.treeCache=undefined;this.resourceCache=undefined;this.searchCache.delete(relative);this.emit('changed');});}
   async resolveNotePath(relative: string): Promise<string> {
     if(!/\.md$/i.test(relative))throw new AppError('NOTE_TYPE','请选择Markdown笔记。');
     const target=await this.checkedPath(relative),stat=await fs.stat(target);

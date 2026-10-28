@@ -1,4 +1,5 @@
 import path from 'node:path';
+import{randomUUID}from'node:crypto';
 import { EventEmitter } from 'node:events';
 import { TemporalIndex } from '../../../../vendor/video-observer/src/TemporalIndex.mjs';
 import { FrameArchive } from '../../../../vendor/video-observer/src/cache/FrameArchive.mjs';
@@ -76,7 +77,7 @@ export class LearningService extends EventEmitter {
     if (!pending) {
       pending = (async () => {
         const dataDir = path.join(this.root, sourceId);
-        const archive = new FrameArchive(dataDir, { clearOnReboot: false });
+        const archive = new FrameArchive(dataDir, { clearOnReboot: false,maxFrames:43200,maxBytes:512*1024*1024 });
         const index = new TemporalIndex({
           adapter: new BrowserAdapter(),
           archive,
@@ -183,6 +184,8 @@ export class LearningService extends EventEmitter {
       frameCount: session?.archiveFrameCount || 0,
     });
     this.sources.setTitle(source.id, input.title);
+    this.sources.recordPlayback(source.id,input.currentTime,input.duration,input.paused);
+    if(input.frame&&this.cache.state.settings.enabled)this.cache.noteFrame();
     this.emit('changed');
   }
   freeze(): ContextAnchor {
@@ -197,6 +200,13 @@ export class LearningService extends EventEmitter {
     });
     if (this.requests.size > 32) this.requests.delete(this.requests.keys().next().value!);
     return anchor;
+  }
+  async freezeSource(sourceId:string):Promise<ContextAnchor>{
+    if(this.sources.active?.sourceId===sourceId&&this.playback())return this.freeze();
+    const source=this.sources.get(sourceId),visit=this.sources.recentLearning().find(v=>v.sourceId===sourceId),runtime=await this.runtime(sourceId),now=new Date().toISOString();
+    const snapshot=runtime.session?.snapshot as any;
+    const anchor:ContextAnchor={requestId:randomUUID(),sourceId,sourceTitle:source.title,sourceUrl:source.url,visitId:visit?.id||'history',generation:0,mediaTime:visit?.position||snapshot?.currentTime||0,submittedAt:now,evidenceCutoffAt:now};
+    this.requests.set(anchor.requestId,{anchor,subtitles:(runtime.session?.subtitles.range(0,Number.MAX_SAFE_INTEGER)||[]).map(s=>({...s})),stale:true});if(this.requests.size>32)this.requests.delete(this.requests.keys().next().value!);return anchor;
   }
   async context(anchor: ContextAnchor, signal?: AbortSignal): Promise<LearningContext> {
     const frozen = this.requests.get(anchor.requestId);

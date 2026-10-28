@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { documentContextSchema } from './documents';
+import{workspaceResource}from'./workspace-context';
 export const aiConfigSchema = z
   .object({
     preset: z.string().max(50),
@@ -28,6 +29,8 @@ export interface AiUsage {
   cost: number | null;
 }
 export interface AiMessage {
+  visionImages?:AiImage[];
+  visionUsage?:AiUsage;visionRequests?:number;visionModel?:string;
   id: string;
   role: 'user' | 'assistant';
   text: string;
@@ -87,6 +90,10 @@ export interface AiModel {
   displayName?: string;
 }
 export interface AiState {
+  conversationId:string;
+  conversations:import('../core/conversations').ConversationInfo[];
+  cumulative:{session:{main:import('../core/usage-ledger').UsageTotal;vision:import('../core/usage-ledger').UsageTotal;compression:import('../core/usage-ledger').UsageTotal};all:import('../core/usage-ledger').UsageTotal};
+  vision:{enabled:boolean;config:AiConfig|null;hasKey:boolean};
   config: AiConfig;
   profiles: Record<string, AiConfig>;
   hasKey: boolean;
@@ -104,6 +111,9 @@ export interface AiState {
   compressionUsage: AiUsage | null;
 }
 export interface ContextMemory {
+  segments?:string[];
+  pins?:string;
+  epoch?:number;
   summary: string;
   covered: number;
   before: number;
@@ -114,7 +124,9 @@ export interface ContextMemory {
   lastCoveredId?: string;
 }
 export const aiRequestSchema = z.discriminatedUnion('action', [
+  z.object({action:z.literal('configureVision'),enabled:z.boolean(),config:aiConfigSchema.nullable(),key:z.string().max(8192).optional(),forgetKey:z.boolean().optional()}).strict(),
   z.object({ action: z.literal('state') }),
+  z.object({action:z.literal('conversation'),operation:z.enum(['create','switch','rename','delete']),id:z.string().max(100).optional(),title:z.string().max(80).optional()}).strict(),
   z
     .object({
       action: z.literal('select'),
@@ -132,6 +144,8 @@ export const aiRequestSchema = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('send'),
     text: z.string().min(1).max(32000),
+    workspace:z.array(workspaceResource).max(2).optional(),
+    sourceInstruction: z.string().max(8000).optional(),
     note: z.object({ vaultId: z.string(), path: z.string().max(500) }).optional(),
     image:z.object({vaultId:z.string(),path:z.string().min(1).max(500)}).strict().optional(),
     document: documentContextSchema.optional(),

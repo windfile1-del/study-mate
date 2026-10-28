@@ -6,11 +6,17 @@ asarUnpack:
 electronDist: node_modules/electron/dist
 afterPack: scripts/package-local-models.cjs
 directories:
-  output: release/0.10.0
+  output: release/0.14.0
 files:
   - out/**/*
   - package.json
 extraResources:
+  - from: docs/17-逐篇恢复与紧凑伴学界面.md
+    to: 逐篇恢复与紧凑界面说明.md
+  - from: docs/16-会话与学习资料管理.md
+    to: 会话与学习资料管理说明.md
+  - from: docs/15-灵活工作台与批注.md
+    to: 工作台与批注说明.md
   - from: docs/14-视频自主阅读与缓存.md
     to: 视频阅读与缓存说明.md
   - from: vendor/recognition

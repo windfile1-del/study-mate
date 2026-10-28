@@ -116,7 +116,8 @@ const until = async (fn, timeout = 90000) => {
 };
 const shot = async (name) => {
   const file = path.join(artifacts, name + '.png');
-  await page.screenshot({ path: file });
+  await app.evaluate(({BrowserWindow},url)=>{const win=BrowserWindow.getAllWindows().find(w=>w.webContents.getURL()===url);win.show();win.focus();},page.url());
+  await page.screenshot({ path: file, timeout:30000, animations:'disabled' });
   result.screenshots.push(file);
 };
 try {
@@ -129,7 +130,7 @@ try {
     delete env.NODE_OPTIONS;
   }
   const executable =
-    process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.10.0/win-unpacked/Study Mate.exe');
+    process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.12.0/win-unpacked/Study Mate.exe');
   app = await _electron.launch({
     executablePath: packed ? executable : electron,
     args: packed ? [] : [root],

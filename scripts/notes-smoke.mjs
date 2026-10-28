@@ -7,7 +7,7 @@ const root = process.cwd(),
   packed = process.argv.includes('--packed');
 const development = process.argv.includes('--dev');
 const packedExecutable =
-  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.10.0/win-unpacked/Study Mate.exe');
+  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.12.0/win-unpacked/Study Mate.exe');
 const artifacts = path.join(
   root,
   'artifacts',
@@ -194,7 +194,7 @@ try {
   await page.locator('.note-preview .katex').first().waitFor();
   await page.locator('.diagram-image').first().waitFor({ timeout: 30000 });
   assert.equal(await page.locator('.note-preview script').count(), 0);
-  assert.equal(await page.locator('.note-callout').count(), 1);
+  assert.equal(await page.locator('.note-callout').filter({hasText:'先看公式，再结合流程图理解反馈关系。'}).count(), 1);
   assert.ok((await page.locator('.katex .frac-line').count()) > 0);
   assert.ok((await page.locator('.katex svg path').count()) >= 0);
   await shot('01-formula-flowchart');

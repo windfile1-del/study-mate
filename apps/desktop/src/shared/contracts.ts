@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
 export const CHANNELS = {
+  library:'library:request',
+  panel:'workspace:panel',panelEvent:'workspace:panel-event',
+  annotation:'document:annotation',
   state: 'app:state',
   videoCache:'video:cache',observerPolicy:'observer:policy',
   chooseDocument: 'document:choose',
@@ -206,6 +209,10 @@ export const observationSchema = z
 export type ObservationInput = z.infer<typeof observationSchema>;
 
 export interface StudyMateBridge {
+  library(input:import('zod').infer<typeof import('./library').libraryRequest>):Promise<import('./library').LibraryReply>;
+  panel(input:import('zod').infer<typeof import('./panels').panelRequest>):Promise<import('./panels').PanelState>;
+  onPanelEvent(listener:(event:import('./panels').PanelEvent)=>void):()=>void;
+  annotation(input:import('zod').infer<typeof import('./annotations').annotationRequest>):Promise<import('./annotations').AnnotationPage>;
   ai(input: import('./ai').AiRequest): Promise<import('./ai').AiState>;
   state(): Promise<AppState>;
   videoCache(input:import('zod').infer<typeof import('./video-cache').videoCacheRequest>):Promise<import('./video-cache').VideoCacheState>;

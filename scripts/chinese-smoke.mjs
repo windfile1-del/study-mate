@@ -89,7 +89,7 @@ if (packed) {
 }
 let app, page;
 const executable =
-  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.10.0/win-unpacked/Study Mate.exe');
+  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.12.0/win-unpacked/Study Mate.exe');
 async function until(fn, timeout = 120000) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
@@ -243,9 +243,10 @@ try {
   }, 'http://127.0.0.1:' + server.address().port);
   await page.locator('.ocr-result').getByRole('button', { name: '让 AI 看原图', exact: true }).click();
   await page.getByRole('dialog', { name: '识别与全库检索' }).waitFor({ state: 'hidden' });
-  await until(async()=> (await page.getByRole('textbox',{name:'伴学提问',exact:true}).inputValue()).includes(expectedImage));
+  await page.getByLabel('待参考资料', { exact: true }).waitFor();
   const draft = await page.getByRole('textbox', { name: '伴学提问', exact: true }).inputValue();
-  assert.ok(draft.includes(expectedImage));
+  assert.ok(!draft.includes(expectedImage));
+  assert.doesNotMatch(draft, /view_image|请调用|知识库图片路径/);
   assert.ok(!draft.includes(ocr.text.trim()) || !ocr.text.trim());
   await page.getByRole('button', { name: '发送 AI 消息', exact: true }).click();
   await until(() =>
@@ -256,6 +257,7 @@ try {
     ),
   );
   assert.equal(requests.length, 2);
+  assert.ok(JSON.stringify(requests[0].messages).includes(expectedImage));
   assert.doesNotMatch(JSON.stringify(requests[0].messages), /data:image\/.*;base64,/);
   assert.match(JSON.stringify(requests[1].messages), /data:image\/.*;base64,/);
   assert.equal(requests[0].tools.length, 23);

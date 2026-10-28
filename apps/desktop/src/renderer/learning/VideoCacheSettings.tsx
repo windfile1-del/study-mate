@@ -77,11 +77,8 @@ export function VideoCacheSettings() {
             value={form.retentionHours}
             onChange={(e) => setForm({ ...form, retentionHours: +e.target.value })}
           >
-            <option value={24}>1 天</option>
-            <option value={72}>3 天</option>
-            <option value={168}>7 天</option>
-            <option value={720}>30 天</option>
-            {![24, 72, 168, 720].includes(form.retentionHours) && (
+            {[1,3,6,12,24].map(n=><option key={n} value={n}>{n===24?'24 小时 · 1 天':n+' 小时'}</option>)}
+            {![1,3,6,12,24].includes(form.retentionHours) && (
               <option value={form.retentionHours}>{form.retentionHours} 小时</option>
             )}
           </select>
@@ -107,9 +104,9 @@ export function VideoCacheSettings() {
             value={form.cleanupMinutes}
             onChange={(e) => setForm({ ...form, cleanupMinutes: +e.target.value })}
           >
-            {[1, 5, 10, 30, 60].map((n) => (
+            {[1, 5, 10, 30, 60,180,360,720,1440].map((n) => (
               <option value={n} key={n}>
-                每 {n} 分钟
+                每 {n>=60?n/60+' 小时':n+' 分钟'}检查
               </option>
             ))}
           </select>
@@ -118,7 +115,7 @@ export function VideoCacheSettings() {
       <div className="video-cache-info">
         <Clock3 size={16} />
         <p>
-          过期优先清理；超出空间时从最旧画面开始淘汰。单课另有 2400 帧 / 96 MB
+          检查频率不是保留时长：只有超过所设保留时长的画面才按时间过期。超出空间时从最旧画面开始淘汰。单课另有缓存容量
           上限。仅清理自动画面，不删除原视频、字幕、转写、笔记或手动解析结果。
           <br />
           最近清理：{state?.lastCleanup ? new Date(state.lastCleanup).toLocaleString('zh-CN') : '尚未执行'} ·
@@ -140,7 +137,7 @@ export function VideoCacheSettings() {
         </p>
       )}
       <p className="video-cache-hint">
-        缓存与定时清理在本机完成，不消耗模型额度。勾选对话框“自动看课”后，提问才会触发模型按需读取字幕、画面或原视频片段。
+        缓存与定时清理在本机完成，不消耗模型额度。课程在当前可见工作台时会自动附加引用；提问后模型才按需读取字幕、画面或原视频片段。
       </p>
     </section>
   );

@@ -1,6 +1,6 @@
 {
   "name": "study-mate",
-  "version": "0.10.0",
+  "version": "0.14.0",
   "private": true,
   "type": "module",
   "description": "Local-first desktop learning workspace",
@@ -28,7 +28,14 @@
     "smoke:documents:packed": "node scripts/workspace.mjs smoke-documents-packed",
     "smoke:chinese": "node scripts/workspace.mjs smoke-chinese",
     "smoke:learning": "node scripts/workspace.mjs smoke-learning",
-    "smoke:video": "node scripts/workspace.mjs smoke-video"
+    "smoke:video": "node scripts/workspace.mjs smoke-video",
+    "smoke:reader": "node scripts/workspace.mjs smoke-reader",
+    "smoke:reader:packed": "node scripts/workspace.mjs smoke-reader-packed",
+    "test:workflow": "node scripts/workspace.mjs test-workflow",
+    "test:affected": "node scripts/workspace.mjs test-affected",
+    "smoke:workflow": "node scripts/workspace.mjs smoke-workflow",
+    "smoke:refinement": "node scripts/workspace.mjs smoke-refinement",
+    "test:refinement": "node scripts/workspace.mjs test-refinement"
   },
   "dependencies": {
     "chokidar": "5.0.0",

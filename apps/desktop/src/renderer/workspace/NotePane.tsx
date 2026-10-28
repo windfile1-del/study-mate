@@ -8,11 +8,13 @@ import {
   LoaderCircle,
   PanelRightOpen,
   RefreshCw,
+  History,
   Save,
 } from 'lucide-react';
 import { NotePreview } from '../notes/NotePreview';
 import { isDirty, type Pane } from './note-desk';
 import type { NoteDesk } from './useNoteDesk';
+import{SynchronizedEditor}from'./SynchronizedEditor';
 export function NotePane({
   desk,
   pane,
@@ -124,12 +126,13 @@ export function NotePane({
           <button className="icon-button" aria-label="重新读取笔记" onClick={() => void desk.reload(path)}>
             <RefreshCw size={15} />
           </button>
+          <button className="icon-button" aria-label="管理当前笔记备份" title="预览、恢复与清理自动备份" onClick={()=>window.dispatchEvent(new CustomEvent('study-library-manage',{detail:{path}}))}><History size={15}/></button>
           <button className="primary" onClick={() => void desk.save(path)} disabled={!dirty || saving}>
             {saving ? <LoaderCircle size={15} className="spin" /> : <Save size={15} />}保存 <kbd>Ctrl S</kbd>
           </button>
         </div>
       </div>
-      <div className="note-editor" data-color-mode="light">
+      <SynchronizedEditor scope={vaultId+':'+path} anchor={anchor}>
         {view === 'preview' ? (
           preview(content)
         ) : (
@@ -145,7 +148,7 @@ export function NotePane({
             onChange={(value) => desk.edit(path, value || '')}
           />
         )}
-      </div>
+      </SynchronizedEditor>
       <div className="reader-status">
         <Check size={13} />
         普通 Markdown · 草稿随标签保留<span>{content.length} 字符 · UTF-8</span>

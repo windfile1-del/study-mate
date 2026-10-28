@@ -1,0 +1,486 @@
+.ai-panel,
+.compact-ai .ai-panel {
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 0;
+  overflow: hidden;
+}
+.ai-panel .ai-heading {
+  height: 36px;
+  min-height: 36px;
+  flex: none;
+}
+.ai-panel .ai-messages {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+}
+.ai-panel .ai-composer {
+  flex: none;
+  margin: 6px 9px 0;
+  padding: 8px 10px;
+  border-radius: 17px;
+  min-height: 0;
+  overflow: visible;
+}
+.ai-panel .ai-composer textarea {
+  height: 62px;
+  min-height: 40px;
+  max-height: 140px;
+  resize: vertical;
+  padding: 8px 3px;
+  font-size: 12px;
+}
+.ai-panel .ai-send-row {
+  gap: 3px;
+  margin-top: 3px;
+  min-width: 0;
+}
+.ai-send-row > .composer-controls {
+  margin-left: auto;
+}
+.ai-panel .ai-send {
+  width: 29px;
+  height: 29px;
+  min-width: 29px;
+  border-radius: 50%;
+  flex: none;
+}
+.composer-controls {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+  max-width: calc(100% - 33px);
+}
+.composer-controls > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 5px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+.composer-controls > button:hover,
+.composer-controls > button[aria-expanded='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.composer-model-button {
+  min-width: 0;
+  max-width: 190px;
+}
+.composer-model-button > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.composer-effort-button {
+  flex: none;
+}
+.context-indicator {
+  flex: none;
+  width: 24px;
+  height: 26px;
+}
+.context-mini-track {
+  width: 5px;
+  height: 19px;
+  border-radius: 5px;
+  background: var(--line);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+.context-mini-track i {
+  display: block;
+  width: 100%;
+  min-height: 2px;
+  background: var(--accent);
+  border-radius: 5px;
+}
+.near-limit .context-mini-track i {
+  background: var(--danger);
+}
+.ai-usage-footer {
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  min-height: 22px;
+  padding: 3px 12px 5px;
+  min-width: 0;
+}
+.ai-usage-footer > button {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  color: var(--ink-tertiary);
+  text-align: right;
+  max-width: 100%;
+}
+.ai-panel .auto-resource-chips {
+  padding: 2px 0;
+  gap: 4px;
+  max-height: 26px;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+.ai-panel .auto-resource-chips span {
+  font-size: 9px;
+  padding: 3px 5px;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.ai-panel .ai-context-options {
+  margin: 0;
+  gap: 9px;
+}
+.ai-panel .ai-path-hint {
+  display: none;
+}
+.ai-panel > .ai-notice,
+.ai-panel > .ai-error {
+  max-height: 40px;
+  overflow: auto;
+  flex: none;
+  font-size: 10px;
+  padding: 4px 9px;
+  margin: 2px 10px;
+}
+.ai-panel .ai-session-tabs {
+  padding: 4px 9px;
+  min-height: 25px;
+  max-height: 29px;
+}
+.companion .study-dock {
+  min-height: 100px;
+  max-height: calc(100% - 240px);
+  flex: 0 1 auto;
+}
+.companion.compact-ai > .ai-panel {
+  min-height: 220px;
+}
+.compact-ai .ai-heading {
+  display: flex;
+}
+.compact-ai .ai-messages {
+  min-height: 0;
+  max-height: none;
+}
+.compact-ai .ai-welcome {
+  padding: 8px;
+}
+.compact-ai .ai-welcome p,
+.compact-ai .ai-welcome .ai-privacy,
+.compact-ai .ai-welcome-mark {
+  display: none;
+}
+.compact-ai .ai-welcome h3 {
+  font-size: 12px;
+  margin: 3px;
+}
+.compact-ai .ai-welcome .ai-connect {
+  padding: 4px;
+  font-size: 11px;
+}
+.compact-ai .ai-composer {
+  margin-top: 3px;
+}
+.compact-ai .ai-composer textarea {
+  height: 42px;
+  min-height: 36px;
+}
+.resizing .sidebar,
+.resizing .companion,
+.resizing .study-dock {
+  transition: none !important;
+}
+.resizing .note-pane,
+.resizing .document-pane {
+  contain: layout paint;
+}
+.resizing .ai-messages {
+  overflow-anchor: none;
+}
+.composer-popover {
+  position: fixed;
+  z-index: 2000;
+  background: var(--surface-paper, #fff);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  box-shadow: var(--shadow-lg);
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  color: var(--ink-primary);
+  font-size: 12px;
+  overscroll-behavior: contain;
+}
+.composer-popover header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+.composer-popover header button {
+  padding: 3px;
+  border-radius: 5px;
+}
+.composer-popover small {
+  font-size: 10px;
+  color: var(--ink-tertiary);
+  line-height: 1.7;
+}
+.composer-popover input,
+.composer-popover select {
+  min-width: 0;
+  color: var(--ink-primary);
+  background: var(--surface-subtle);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px;
+  font: inherit;
+}
+.model-menu-service {
+  display: flex;
+  gap: 7px;
+}
+.model-menu-service select {
+  flex: 1;
+  min-width: 0;
+}
+.model-menu-service button {
+  padding: 6px;
+}
+.model-menu-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink-tertiary);
+}
+.model-menu-search input {
+  flex: 1;
+}
+.model-menu-list {
+  overflow: auto;
+  min-height: 35px;
+  max-height: 270px;
+  flex: 1 1 auto;
+}
+.model-menu-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 8px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.model-menu-list button span {
+  overflow-wrap: anywhere;
+}
+.model-menu-list button:hover,
+.model-menu-list button[aria-selected='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.model-id-form {
+  display: flex;
+  gap: 7px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.model-id-form input {
+  flex: 1;
+}
+.model-id-form button {
+  padding: 5px 9px;
+  color: var(--accent);
+}
+.effort-current {
+  text-align: center;
+  color: var(--accent);
+  font-size: 19px;
+  font-weight: 600;
+}
+.effort-current small {
+  display: block;
+  font-weight: 400;
+  margin-top: 5px;
+}
+.composer-popover .effort-slider {
+  width: 100%;
+  padding: 0;
+  accent-color: var(--accent);
+  height: 24px;
+  flex: none;
+}
+.effort-steps {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+}
+.effort-steps button {
+  font-size: 9px;
+  padding: 4px;
+  border-radius: 5px;
+}
+.effort-steps button[aria-pressed='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.context-percentage {
+  font-size: 22px;
+  color: var(--accent);
+  font-weight: 650;
+}
+.context-percentage small {
+  font-size: 11px;
+  font-weight: 400;
+}
+.context-wide-track {
+  height: 6px;
+  border-radius: 9px;
+  background: var(--line);
+  overflow: hidden;
+  flex: none;
+}
+.context-wide-track i {
+  height: 100%;
+  display: block;
+  background: var(--accent);
+}
+.composer-popover p {
+  margin: 0;
+  line-height: 1.7;
+}
+.context-compact-button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+  padding: 9px;
+  background: var(--accent-soft);
+  border-radius: 8px;
+}
+.composer-popover pre {
+  white-space: pre-wrap;
+  max-height: 140px;
+  overflow: auto;
+  font-size: 11px;
+}
+.composer-popover dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin: 0;
+  font-size: 11px;
+}
+.composer-popover dd {
+  margin: 0;
+  text-align: right;
+}
+.composer-popover dt {
+  color: var(--ink-tertiary);
+}
+@media (max-width: 400px) {
+  .composer-model-button {
+    max-width: 150px;
+  }
+  .ai-panel .ai-heading {
+    padding: 0 10px;
+  }
+  .ai-panel .ai-composer {
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+}
+@media (max-height: 560px) {
+  .floating-body .ai-panel .ai-usage-footer {
+    display: flex;
+  }
+  .floating-body .ai-panel .ai-composer {
+    padding: 5px 8px;
+  }
+  .floating-body .ai-panel .ai-composer textarea {
+    height: 38px;
+    min-height: 32px;
+  }
+}
+.composer-popover,
+.composer-popover * {
+  box-sizing: border-box;
+}
+.composer-popover {
+  overflow-x: hidden;
+}
+.composer-popover .effort-slider {
+  margin: 0;
+}
+.companion.compact-ai > .ai-panel {
+  min-height: 280px;
+}
+.companion .study-dock {
+  max-height: calc(100% - 300px);
+}
+.ai-messages .ai-notice {
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--accent);
+  padding: 5px 0;
+}
+.compact-ai .ai-composer {
+  padding: 5px 8px;
+  margin-bottom: 0;
+}
+.compact-ai .ai-context-options {
+  padding: 0;
+  min-height: 20px;
+}
+.compact-ai .auto-resource-chips {
+  max-height: 22px;
+  padding: 1px 0;
+}
+.compact-ai .ai-composer textarea {
+  height: 38px;
+  max-height: 72px;
+}
+.compact-ai .ai-messages {
+  padding: 3px 10px;
+}
+.compact-ai .ai-send-row {
+  margin-top: 0;
+}
+
+.ai-panel .ai-composer {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 112px;
+}
+.ai-panel .ai-composer textarea {
+  flex: 1 1 auto;
+  min-height: 32px;
+}
+.ai-composer > .ai-context-options,
+.ai-composer > .ai-send-row,
+.ai-composer > .auto-resource-chips {
+  flex: none;
+}
+.ai-composer > .ai-image-reference {
+  flex: none;
+  max-height: 28px;
+  overflow: auto;
+  margin: 2px 0;
+}
+
+.model-picker-popover,.effort-picker-popover{padding:10px;gap:7px;border-radius:12px}.model-picker-popover header,.effort-picker-popover header{font-size:11px}.model-picker-popover .model-menu-list{max-height:210px}.model-picker-popover .model-menu-list button{padding:7px 6px;font-size:11px}.model-picker-popover .model-menu-service select,.model-picker-popover .model-menu-search input{padding:6px;font-size:10px}.manual-model-details summary{font-size:10px;color:var(--ink-tertiary);cursor:pointer}.manual-model-details .model-id-form{padding-top:7px;margin-top:6px}.effort-picker-popover .effort-current{font-size:17px}.effort-picker-popover .effort-current small{font-size:9px;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.effort-picker-popover .effort-slider{height:18px}.effort-picker-popover .effort-steps button{font-size:9px;padding:2px}.effort-picker-popover .effort-steps{gap:0}

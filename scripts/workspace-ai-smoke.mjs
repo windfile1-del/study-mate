@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 const root = process.cwd(),
   packed = process.argv.includes('--packed');
 const executable =
-  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.10.0/win-unpacked/Study Mate.exe');
+  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.12.0/win-unpacked/Study Mate.exe');
 const data = path.join(root, '.cache', 'workspace-ai-' + Date.now()),
   vault = path.join(data, 'vault-fixture'),
   artifacts = path.join(root, 'artifacts', packed ? 'workspace-ai-packed' : 'workspace-ai');
@@ -589,7 +589,8 @@ try {
   assert.deepEqual(afterCancel.memory, beforeFailure.memory);
   assert.deepEqual(afterCancel.messages, beforeFailure.messages);
   slow = false;
-  await configure({ contextSize: 8192, maxOutput: 512, autoCompact: true, compactAt: 0.5 });
+  // Source-link guidance enlarges the stable prefix; retain space for the same three recent full turns.
+  await configure({ contextSize: 10240, maxOutput: 512, autoCompact: true, compactAt: 0.5 });
   const current = '当前问题必须保留：推导闭环函数。'.repeat(10);
   await ask(current);
   assert.ok(requests.at(-1).body.messages.at(-1).content.includes(current));
@@ -614,17 +615,14 @@ try {
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [file] });
   }, chosenImage);
   await page.getByRole('button', { name: '导入图片到知识库', exact: true }).click();
-  await until(async () =>
-    (await page.getByRole('textbox', { name: '伴学提问', exact: true }).inputValue()).includes(
-      'attachments/study-mate/',
-    ),
-  );
+  await page.getByLabel('待参考资料', { exact: true }).waitFor();
+  assert.doesNotMatch(await page.getByRole('textbox', { name: '伴学提问', exact: true }).inputValue(),/attachments\/study-mate\/|view_image|请调用/);
   assert.equal(
     (await fs.readdir(path.join(vault, 'attachments/study-mate'))).filter((p) => p.endsWith('.png')).length,
     1,
   );
   findings.checks.push(
-    'Local image picker copies selected image into the vault and adds only its path to the unsent question',
+    'Local image picker copies selected image into the vault and keeps paths/tool instructions in a removable source reference outside the question',
   );
   const toolStart = requests.length;
   await page.getByRole('checkbox', { name: '允许保存', exact: true }).check();

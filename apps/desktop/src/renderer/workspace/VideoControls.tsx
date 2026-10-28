@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Maximize2, Pause, Play, Subtitles } from 'lucide-react';
+import { Maximize2, Pause, Play, Subtitles,Mic } from 'lucide-react';
 import type { PlayerRequest, PlayerState } from '../../shared/player';
 import './video-controls.css';
 const stamp = (time: number) => `${Math.floor(time / 60)}:${String(Math.floor(time % 60)).padStart(2, '0')}`;
@@ -9,6 +9,7 @@ export function VideoControls({ active }: { active: boolean }) {
     [busy, setBusy] = useState(false),
     [seeking, setSeeking] = useState<number | null>(null);
   const epoch = useRef(0);
+  const [asr,setAsr]=useState<{capturing:boolean;queued:number;message:string}>({capturing:false,queued:0,message:''});
   useEffect(() => {
     if (!active) return;
     let alive = true,
@@ -18,6 +19,7 @@ export function VideoControls({ active }: { active: boolean }) {
       try {
         const next = await window.studyMate.player({ action: 'state' });
         if (alive && version === epoch.current) setState(next);
+        const speech=await window.studyMate.recognition({action:'state'});if(alive)setAsr(speech);
       } catch {
       } finally {
         if (alive) timer = setTimeout(poll, 800);
@@ -57,6 +59,7 @@ export function VideoControls({ active }: { active: boolean }) {
         >
           {state?.focused ? '恢复原网页' : '开启纯视频'}
         </button>
+        <button aria-label={asr.capturing?'停止课程听写':'开启课程听写'} aria-pressed={asr.capturing} title="将课程音频实时转为可检索文字；这与显示已有字幕是两个独立功能" onClick={()=>{setError('');void window.studyMate.recognition({action:asr.capturing?'stop':'start',...(asr.capturing?{}:{language:'chinese'})} as any).then(setAsr).catch(e=>setError(e.message));}}><Mic size={14}/>{asr.capturing?'停止听写':'音频转文字'}{asr.queued>0?' · '+asr.queued+' 段处理中':''}</button>
       </div>
       {state?.focused ? (
         <div className="video-controls-row">

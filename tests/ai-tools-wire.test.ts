@@ -171,7 +171,7 @@ test('Gemini/Antigravity preserve exact thoughtSignature parts and response IDs 
     assert.deepEqual(wire.contents[1].parts, [part]);
     assert.equal(wire.contents[2].parts[0].functionResponse.id, 'fn-1');
     assert.equal(wire.contents[2].parts.at(-1).inlineData.data, 'aW1hZ2U=');
-    assert.equal(wire.tools[0].functionDeclarations.length, 23);
+    assert.equal(wire.tools[0].functionDeclarations.length, 28);
   }
 });
 test('History replay is append-only across turns; model switches cannot reuse foreign opaque signatures', async () => {

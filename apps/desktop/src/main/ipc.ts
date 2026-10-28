@@ -21,6 +21,9 @@ import type { DocumentService } from './documents';
 import type {RecognitionService} from './recognition';
 import {recognitionRequestSchema} from '../shared/recognition';
 import {knowledgeRequestSchema} from '../shared/knowledge';
+import{annotationRequest}from'../shared/annotations';
+import{FloatingPanels}from'./floating-panels';
+import{libraryRequest}from'../shared/library';
 
 export function registerIpc(
   window: BrowserWindow,
@@ -32,8 +35,10 @@ export function registerIpc(
   assets: NoteAssets,
   documents: DocumentService,
   recognition:RecognitionService,
+  panels:FloatingPanels,
 ): () => Promise<void> {
   let dirtyPaths: string[] = [];
+  const hasDraft=(target:string)=>dirtyPaths.some(p=>p.replaceAll('\\','/').toLowerCase()===target.replaceAll('\\','/').toLowerCase());
   const ai = new AiService(kernel, {
     analyze: (input, sourceId, signal) =>
       media.analyzeForAssistant(input, browser.view?.webContents, sourceId, signal),
@@ -47,10 +52,11 @@ export function registerIpc(
   const authorizeShell = (event: IpcMainInvokeEvent) => {
     const frame = event.senderFrame;
     if (
+      !panels.accepts(event)&&(
       event.sender !== window.webContents ||
       !frame ||
       frame !== window.webContents.mainFrame ||
-      frame.url.split('#')[0] !== trustedUrl.split('#')[0]
+      frame.url.split('#')[0] !== trustedUrl.split('#')[0])
     ) {
       throw new AppError('IPC_DENIED', '此页面无权访问应用服务。');
     }
@@ -73,6 +79,15 @@ export function registerIpc(
     );
   };
   shell(CHANNELS.state, () => kernel.state());
+  shell(CHANNELS.library,async raw=>{const req=libraryRequest.parse(raw);if(req.action==='backups')return{backupPath:kernel.vault.backupPath,backups:await kernel.vault.backups(req.path)};if(req.action==='recent-learning')return{recent:kernel.sources.recentLearning()};
+    if(req.action==='backup-content')return{content:await kernel.vault.backupContent(req.id)};
+    if(req.action==='restore'){if(hasDraft(req.path))throw Error('请先保存该笔记的草稿再恢复备份');const doc=await kernel.vault.restoreBackup(req.id,req.path,req.version);return{restored:doc.path};}
+    if(req.action==='clean-backups'){await kernel.vault.cleanBackups(req.ids);return{removed:true};}
+    if(req.kind==='note'){if(hasDraft(req.id))throw Error('笔记有未保存草稿，请先保存再删除');if(!req.version)throw Error('请刷新笔记后再删除');await kernel.vault.remove(req.id,req.version,p=>desktopShell.trashItem(p));}
+    else if(req.kind==='document')await kernel.documents.remove(req.id);else{if(kernel.sources.active?.sourceId===req.id)browser.close();await kernel.sources.remove(req.id);}return{removed:true};
+  });
+  ipcMain.handle(CHANNELS.panel,(event,input)=>resultOf(()=>{authorizeShell(event);return panels.request(input,event.sender===window.webContents);}));
+  shell(CHANNELS.annotation,input=>{const request=annotationRequest.parse(input);return kernel.annotations.request(request,kernel.documents.get(request.id));});
   shell(CHANNELS.videoCache,async input=>{const request=videoCacheRequest.parse(input);if(request.action==='configure')return kernel.learning.cache.configure(request.settings);if(request.action==='clean')return kernel.learning.cache.clean();return structuredClone(kernel.learning.cache.state);});
   ipcMain.handle(CHANNELS.observerPolicy,event=>resultOf(()=>{authorizeObserver(event);return{enabled:kernel.learning.cache.state.settings.enabled};}));
   shell(CHANNELS.recognition,input=>recognition.request(recognitionRequestSchema.parse(input)));
@@ -221,6 +236,7 @@ export function registerIpc(
     }),
   );
   return async () => {
+    await panels.close();
     await ai.close();
     await recognition.close();
     await documents.close();

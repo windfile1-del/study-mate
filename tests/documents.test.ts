@@ -150,5 +150,5 @@ test('Document tools scope imported IDs, freeze current page, bound text, expose
   assert.equal(view.images?.[0].mime, 'image/webp');
   assert.match(JSON.parse(view.text).images[0].image, /^frame:doc-/);
   await assert.rejects(execute('read_document_page', { document_id: 'other', page: 1 }), /授权列表/);
-  assert.equal(STUDY_TOOLS.length, 23);
+  assert.equal(STUDY_TOOLS.length, 28);
 });

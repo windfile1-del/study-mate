@@ -1,0 +1,3 @@
+import{searchTerms}from'./history-lookup';
+export function rankLessonEvidence(rows:{from:number;to:number;text:string;kind:string}[],query:string){const terms=searchTerms(query);return rows.map(r=>({...r,score:terms.reduce((s,t)=>s+(r.text.toLowerCase().includes(t)?t.length:0),0)})).filter(r=>r.score>0).sort((a,b)=>b.score-a.score||a.from-b.from).slice(0,12);}
+export function lessonScanPlan(duration:number,ranges:[number,number][],limit=6){const covered=ranges.filter(([a,b])=>b>a+10),segments=covered.length?covered:[[0,duration>0?duration:600]as[number,number]],length=segments.reduce((n,[a,b])=>n+b-a,0);return Array.from({length:limit},(_,i)=>{let at=(i+.5)/limit*length;for(const[a,b]of segments){if(at<=b-a)return a+at;at-=b-a;}return segments.at(-1)![1];});}

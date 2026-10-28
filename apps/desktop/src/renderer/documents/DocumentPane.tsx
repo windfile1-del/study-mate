@@ -1,4 +1,3 @@
-import {OcrCard} from '../learning/LearningPanel';
 import type {OcrResult} from '../../shared/recognition';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react';
 import type { DocumentContext, DocumentInfo, DocumentPage, DocumentRegion } from '../../shared/documents';
 import './documents.css';
+import{PageThumbnails}from'./PageThumbnails';import{AnnotationLayer}from'./AnnotationLayer';
 const api = window.studyMate;
 export function DocumentPane({
   id,
@@ -46,9 +46,7 @@ export function DocumentPane({
     [region, setRegion] = useState<DocumentRegion>(),
     [searching, setSearching] = useState(false),
     [retry, setRetry] = useState(0);
-  const pageIdentity=useRef({id,page});pageIdentity.current={id,page};
-  const [ocr,setOcr]=useState<OcrResult|null>(null),[ocrBusy,setOcrBusy]=useState(false);
-  useEffect(()=>setOcr(null),[id,page]);
+  const[outlineTab,setOutlineTab]=useState<'outline'|'thumbnails'>('thumbnails'),[inkActive,setInkActive]=useState(false),[inkToolbar,setInkToolbar]=useState<HTMLDivElement|null>(null),[wheelPages,setWheelPages]=useState(true);const lastWheel=useRef(0),wheelTotal=useRef(0);
   const stage = useRef<HTMLDivElement>(null),
     sheet = useRef<HTMLDivElement>(null),
     start = useRef<{ x: number; y: number } | null>(null),
@@ -65,6 +63,7 @@ export function DocumentPane({
       .then((r) => {
         if (live) {
           setInfo(r.document);
+          if(r.document.kind!=='pdf')setOutline(true);
           setPage(initialPage || r.document.lastPage || 1);
         }
       })
@@ -79,9 +78,11 @@ export function DocumentPane({
   useEffect(() => {
     const el = stage.current;
     if (!el) return;
-    const observer = new ResizeObserver(() => setWidth(Math.max(260, el.clientWidth - 48)));
+    const update=()=>{if(!el.closest('.app')?.classList.contains('resizing'))setWidth(Math.max(260,el.clientWidth-48));};
+    const observer = new ResizeObserver(update);
     observer.observe(el);
-    return () => observer.disconnect();
+    window.addEventListener('study-layout-settled',update);
+    return () => {observer.disconnect();window.removeEventListener('study-layout-settled',update);};
   }, []);
   useEffect(() => {
     setSelection(undefined);
@@ -107,6 +108,7 @@ export function DocumentPane({
         })
         .then((r) => {
           if (live) {
+            setInfo(r.document);
             setContent(r.page!);
             void api.document({ action: 'locate', id, page }).catch(() => {});
           }
@@ -122,6 +124,7 @@ export function DocumentPane({
   const go = (n: number) => {
     if (info) setPage(Math.min(info.pages || 1, Math.max(1, n)));
   };
+  useEffect(()=>{const node=stage.current;if(!node||!info||info.kind==='pdf'||!wheelPages)return;const wheel=(e:WheelEvent)=>{if(e.ctrlKey||e.metaKey||e.shiftKey||inkActive||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;if((e.target as HTMLElement).closest('.document-notes,input,textarea'))return;const atEdge=e.deltaY>0?node.scrollTop+node.clientHeight>=node.scrollHeight-2:node.scrollTop<=1;if(zoom>1&&!atEdge)return;e.preventDefault();if(busy||Date.now()-lastWheel.current<400)return;wheelTotal.current+=e.deltaY*(e.deltaMode===1?16:1);if(Math.abs(wheelTotal.current)<45)return;go(page+(wheelTotal.current>0?1:-1));lastWheel.current=Date.now();wheelTotal.current=0;};node.addEventListener('wheel',wheel,{passive:false});return()=>node.removeEventListener('wheel',wheel);},[page,info?.id,info?.kind,wheelPages,busy,zoom,inkActive]);
   const search = async (from = 1) => {
     setSearching(true);
     setError('');
@@ -146,6 +149,8 @@ export function DocumentPane({
     <section
       className="document-pane"
       data-document-id={id}
+      tabIndex={0}
+      onKeyDown={e=>{if((e.target as HTMLElement).closest('input,textarea,select,[contenteditable="true"]')||e.ctrlKey||e.metaKey||e.altKey)return;const directions:Record<string,number>={ArrowLeft:-1,ArrowUp:-1,PageUp:-1,ArrowRight:1,ArrowDown:1,PageDown:1};if(e.key in directions){e.preventDefault();e.stopPropagation();go(page+directions[e.key]);}else if(e.key==='Home'||e.key==='End'){e.preventDefault();go(e.key==='Home'?1:info?.pages||1);}}}
       onMouseUp={(e) => {
         if (regionMode) return;
         const selected = window.getSelection();
@@ -169,6 +174,7 @@ export function DocumentPane({
         <button title="目录与搜索" onClick={() => setOutline(!outline)}>
           <List size={16} />
         </button>
+        {info?.kind!=='pdf'&&<button title="滚轮可直接翻页；放大后优先滚动页面" aria-label="滚轮翻页" aria-pressed={wheelPages} className={wheelPages?'active':''} onClick={()=>setWheelPages(!wheelPages)}>滚轮翻页</button>}
         <button aria-label="上一页" disabled={page <= 1 || !info} onClick={() => go(page - 1)}>
           <ChevronLeft size={16} />
         </button>
@@ -204,8 +210,8 @@ export function DocumentPane({
           {regionMode ? <Scan size={16} /> : <Type size={16} />}
         </button>
         {onAskImage&&<button title="让多模态AI查看当前页或选区原图" disabled={!info||info.locked||info.kind==='ppt'} onClick={()=>onAskImage({kind:'document',id,page,region:selection?.region})}>让 AI 看本页</button>}
-        <button title="本地OCR识别当前页或选区" disabled={ocrBusy||!info||info.locked||info.kind==='ppt'} onClick={()=>{const selectedPage=page;setOcrBusy(true);setError('');void api.recognition({action:'ocr-document',id,page,region:selection?.region}).then(value=>{if(pageIdentity.current.id===id&&pageIdentity.current.page===selectedPage)setOcr(value);}).catch(e=>setError(e.message)).finally(()=>setOcrBusy(false));}}>{ocrBusy?'识别中…':'识别文字'}</button>
       </div>
+      <div ref={setInkToolbar}/>
       {info?.warning && <div className="document-notice">{info.warning}</div>}
       {selection && (
         <div className="document-selection">
@@ -229,6 +235,8 @@ export function DocumentPane({
       <div className="document-body">
         {outline && (
           <aside className="document-outline">
+            <div className="document-outline-tabs"><button className={outlineTab==='thumbnails'?'active':''} onClick={()=>setOutlineTab('thumbnails')}>全部缩略图</button><button className={outlineTab==='outline'?'active':''} onClick={()=>setOutlineTab('outline')}>目录与搜索</button></div>
+            {outlineTab==='thumbnails'&&info?<PageThumbnails info={info} page={page} onPage={go} busy={busy}/>:<>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -272,6 +280,7 @@ export function DocumentPane({
               </button>
             ))}
             {!info?.outline.length && <p>文档没有内置目录，可通过页码跳转。</p>}
+            </>}
           </aside>
         )}
         <div className="document-stage" ref={stage}>
@@ -319,6 +328,7 @@ export function DocumentPane({
                     aspectRatio: content.image ? `${content.width}/${content.height}` : undefined,
                   }}
                   onPointerDown={(e) => {
+                    if(!regionMode&&!inkActive)e.currentTarget.closest<HTMLElement>('.document-pane')?.focus({preventScroll:true});
                     if (!regionMode) return;
                     e.preventDefault();
                     start.current = point(e);
@@ -337,6 +347,7 @@ export function DocumentPane({
                     });
                   }}
                   onPointerUp={(e) => {
+                    if(inkActive)return;
                     if (regionMode) {
                       start.current = null;
                       if (e.currentTarget.hasPointerCapture(e.pointerId))
@@ -395,8 +406,8 @@ export function DocumentPane({
                       <pre>{content.text.split('\n').slice(1).join('\n')}</pre>
                     </article>
                   )}
+                  {info&&!info.locked&&<AnnotationLayer key={id+':'+page} id={id} page={page} revision={info.revision} toolbar={inkToolbar} forceSelect={regionMode} onMode={active=>{setInkActive(active);if(active)setRegionMode(false);}}/>}
                 </div>
-                {ocr&&<OcrCard value={ocr} onAsk={onAskImage}/>}
                 {content.notes && (
                   <details className="document-notes">
                     <summary>演讲者备注</summary>

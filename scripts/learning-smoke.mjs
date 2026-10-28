@@ -71,7 +71,7 @@ const env = { ...process.env, STUDYMATE_DATA_DIR: data, STUDYMATE_SMOKE: '1' };
 delete env.ELECTRON_RUN_AS_NODE;
 delete env.ELECTRON_RENDERER_URL;
 const executable =
-  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.10.0/win-unpacked/Study Mate.exe');
+  process.env.STUDYMATE_PACKED_EXE || path.join(root, 'release/0.12.0/win-unpacked/Study Mate.exe');
 if (packed) {
   env.PATH = 'C:\\Windows\\System32;C:\\Windows';
   delete env.NODE_PATH;
@@ -168,10 +168,11 @@ try {
   const file = path.join(data, '扫描课件.pdf');
   await fs.writeFile(file, await pdf.save());
   await choose(file);
+  await page.getByRole('tab', { name: '文档分类', exact: true }).click();
   await page.getByRole('button', { name: '打开 PDF / PowerPoint', exact: true }).click();
   await page.locator('.document-sheet img').waitFor();
-  await page.getByTitle('本地OCR识别当前页或选区').click();
-  await page.locator('.document-pane .ocr-result').waitFor({ timeout: 120000 });
+  await page.evaluate(async()=>{const list=await window.studyMate.state();const doc=list.documents.find(d=>d.title==='扫描课件.pdf');await window.studyMate.recognition({action:'ocr-document',id:doc.id,page:Number(document.querySelector('[aria-label="文档页码"]').value)});});
+  
   let ocr = (await page.evaluate(() => window.studyMate.recognition({ action: 'state' }))).ocr;
   assert.match(ocr.text, /CONTROL SYSTEM/);
   assert.match(ocr.text.replaceAll(' ', ''), /自动控制/);
@@ -181,14 +182,14 @@ try {
   await shot('02-scan-ocr');
   await page.getByRole('button', { name: '下一页', exact: true }).click();
   await page.locator('.document-sheet img[alt="第 2 页"]').waitFor();
-  await page.getByTitle('本地OCR识别当前页或选区').click();
-  await page.locator('.document-pane .ocr-result').waitFor({ timeout: 120000 });
+  await page.evaluate(async()=>{const list=await window.studyMate.state();const doc=list.documents.find(d=>d.title==='扫描课件.pdf');await window.studyMate.recognition({action:'ocr-document',id:doc.id,page:Number(document.querySelector('[aria-label="文档页码"]').value)});});
+  
   ocr = (await page.evaluate(() => window.studyMate.recognition({ action: 'state' }))).ocr;
   assert.equal(ocr.lowConfidence, true);
-  assert.match(await page.locator('.ocr-result').innerText(), /低置信/);
+  assert.ok(ocr.confidence<70);
   await shot('03-low-confidence');
   result.checks.push(
-    'Offline Chinese/English OCR reads scanned PDF pixels with words/bounds/page citation; blank page visibly reports low confidence',
+    'Optional legacy Chinese/English print OCR API preserves words/bounds/citation and blank-page low confidence; default reader uses original images',
   );
   // Capture a selected course tab at 2x, then pause/seek/rate-change. No system or microphone capture.
   await page.evaluate((url) => window.studyMate.openWeb(url), 'http://127.0.0.1:' + server.address().port);
@@ -240,6 +241,7 @@ try {
   // The full-text database is independent from the 5000-row UI tree and 64KB historical search cache.
   await choose(large);
   const started = Date.now();
+  await page.getByRole('tab', { name: '笔记分类', exact: true }).click();
   await page.getByRole('button', { name: '切换知识库', exact: true }).click();
   await page.evaluate(() => {
     window.__learningGaps = [];

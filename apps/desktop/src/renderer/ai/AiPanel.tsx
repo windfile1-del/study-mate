@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import{ComposerControls,UsageFooter}from'./ComposerControls';
+import{ConversationManager}from'./ConversationManager';import type{WorkspaceResource}from'../../shared/workspace-context';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   ArrowUp,
@@ -21,6 +23,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
+import{VisionRoleSettings}from'./VisionRoleSettings';
 import { parseDocumentCitation, type DocumentContext } from '../../shared/documents';
 import {parseVideoCitation} from '../../shared/recognition';
 import remarkGfm from 'remark-gfm';
@@ -36,11 +39,13 @@ import {
 } from '../../shared/ai';
 import './ai.css';
 import './tools.css';
+import './chat-workspace.css';
 import { remarkReadableMath } from '../notes/readable-math';
 import { normalizeDisplayMath } from '../notes/math-source';
 const number = (n: number | null | undefined) => (n == null ? '未返回' : n.toLocaleString());
 const toolLabels: Record<string, string> = {
-  search_knowledge:'全文与语义检索',get_backlinks:'查询反向链接',read_transcript:'读取课程转写',ocr_document_page:'识别扫描页或板书',ocr_image:'识别图片文字',
+  search_conversation_history:'检索原始对话记录',list_recent_learning:'查询最近学习',locate_video_segment:'定位课程讲解',get_note_backups:'查询笔记备份',
+  search_knowledge:'全文与语义检索',get_backlinks:'查询反向链接',read_transcript:'读取课程转写',ocr_document_page:'识别清晰印刷文字',ocr_image:'识别图片文字',
   list_notes: '浏览笔记目录',
   search_notes: '搜索笔记',
   read_note: '按行读取笔记',
@@ -49,6 +54,7 @@ const toolLabels: Record<string, string> = {
   list_images: '查找图片',
   view_image: '查看图片',
   insert_image: '插入图片并保存',
+  restore_note_backup:'恢复笔记指定版本',
   get_video_context: '读取视频上下文',
   analyze_video: '抽帧分析视频',
   read_video_frames:'读取后台缓存画面',read_video_subtitles:'按时间读取字幕',search_video_subtitles:'搜索字幕定位片段',watch_video:'后台观看原视频片段',
@@ -67,7 +73,11 @@ const effortLabels: Record<string, string> = {
   xhigh: '更深入',
   max: '最高',
 };
+const sharedDraftKey='study-ai-draft-v2';
+type PreparedSource={instruction:string;label:string;workspaceKey?:string};
+function readSharedDraft(key=sharedDraftKey):{text:string;image?:{vaultId:string;path:string};source?:PreparedSource;appliedId:string}{try{const value=JSON.parse(localStorage.getItem(key)||'{}');let text=typeof value.text==='string'?value.text.slice(0,32000):'';let source=value.source;if(!source&&text.startsWith('请以原图为准分析内容，复杂公式和模糊区域说明不确定性，')&&/请调用 (view_image|view_document_page|analyze_video)/.test(text)){source={instruction:text.slice(0,8000),label:'已选择的学习资料'};text='请分析所选资料并解释重点。';}return{text,image:value.image,source,appliedId:value.appliedId||''};}catch{return{text:'',appliedId:''};}}
 export function AiPanel({
+  workspace,
   documentContext,
   onOpenDocument,
   onOpenVideo,
@@ -81,10 +91,11 @@ export function AiPanel({
   onNoteChange,
   onOpenNote,
 }: {
+  workspace?:WorkspaceResource[];
   documentContext?: DocumentContext;
   onOpenDocument: (id: string, page: number) => void;
   onOpenVideo:(id:string,time:number)=>void;
-  externalPrompt?:{id:string;text:string;image?:{vaultId:string;path:string}};
+  externalPrompt?:{id:string;text:string;instruction?:string;sourceLabel?:string;image?:{vaultId:string;path:string}};
   note: string | null;
   vaultId: string;
   courseAvailable: boolean;
@@ -97,18 +108,24 @@ export function AiPanel({
   const [state, setState] = useState<AiState | null>(null),
     [error, setError] = useState(''),
     [settings, setSettings] = useState(false),
-    [text, setText] = useState('');
+    [text, setText] = useState(()=>readSharedDraft().text);
   const [attachNote, setAttachNote] = useState(false),
     [attachCourse, setAttachCourse] = useState(true),
-    [pending, setPending] = useState(false),
-    [stats, setStats] = useState(false);
-  const [selectedImage,setSelectedImage]=useState<{vaultId:string;path:string}>();
-  const appliedPrompt=useRef('');
-  useEffect(()=>{if(externalPrompt&&appliedPrompt.current!==externalPrompt.id){appliedPrompt.current=externalPrompt.id;setSelectedImage(externalPrompt.image);setText(prev=>prev.trim()?prev+'\n\n'+externalPrompt.text:externalPrompt.text);}},[externalPrompt]);
+    [pending, setPending] = useState(false);
+  const [selectedImage,setSelectedImage]=useState<{vaultId:string;path:string}|undefined>(()=>readSharedDraft().image);
+  const [preparedSource,setPreparedSource]=useState<PreparedSource|undefined>(()=>readSharedDraft().source);
+  const workspaceKey=JSON.stringify(workspace||[]);
+  useEffect(()=>{if(preparedSource?.workspaceKey&&preparedSource.workspaceKey!==workspaceKey){setPreparedSource(undefined);setSelectedImage(undefined);}},[workspaceKey,preparedSource]);
+  const appliedPrompt=useRef(readSharedDraft().appliedId),draftConversation=useRef(''),swappingDraft=useRef(false);
+  const draftKey=state?.conversationId?'study-ai-draft-v3:'+state.conversationId:sharedDraftKey;
+  useLayoutEffect(()=>{const id=state?.conversationId;if(!id||draftConversation.current===id)return;swappingDraft.current=true;let next;try{const exists=localStorage.getItem(draftKey);next=exists?readSharedDraft(draftKey):!localStorage.getItem('study-ai-draft-migrated-v3')?readSharedDraft():{text:'',image:undefined,source:undefined,appliedId:''};localStorage.setItem('study-ai-draft-migrated-v3','1');}catch{next={text:'',image:undefined,source:undefined,appliedId:''};}draftConversation.current=id;appliedPrompt.current=next.appliedId;setText(next.text);setSelectedImage(next.image);setPreparedSource(next.source);},[state?.conversationId,draftKey]);
+  useEffect(()=>{if(state?.conversationId&&externalPrompt&&appliedPrompt.current!==externalPrompt.id){appliedPrompt.current=externalPrompt.id;setSelectedImage(externalPrompt.image);setPreparedSource(externalPrompt.instruction?{instruction:externalPrompt.instruction,label:externalPrompt.sourceLabel||'已选择的学习资料',workspaceKey:/^(课件|课程)/.test(externalPrompt.sourceLabel||'')?workspaceKey:undefined}:undefined);setText(prev=>prev.trim()?prev:externalPrompt.text);}},[externalPrompt,state?.conversationId]);
+  useEffect(()=>{if(swappingDraft.current){swappingDraft.current=false;return;}if(!state?.conversationId)return;try{const body=JSON.stringify({text,image:selectedImage,source:preparedSource,appliedId:appliedPrompt.current});if(localStorage.getItem(draftKey)!==body)localStorage.setItem(draftKey,body);}catch{}},[text,selectedImage,preparedSource,draftKey]);
+  useEffect(()=>{const changed=(event:StorageEvent)=>{if(event.key!==draftKey||!event.newValue)return;try{const value=JSON.parse(event.newValue);appliedPrompt.current=value.appliedId||'';setText(value.text||'');setSelectedImage(value.image);setPreparedSource(value.source);}catch{}};window.addEventListener('storage',changed);return()=>window.removeEventListener('storage',changed);},[draftKey]);
   const [allowWrite, setAllowWrite] = useState(false);
+  const[historyOpen,setHistoryOpen]=useState(false);
+  useEffect(()=>{setAllowWrite(false);},[state?.conversationId]);
   const [attachDocument, setAttachDocument] = useState(true);
-  const [manualModel, setManualModel] = useState(false),
-    [modelId, setModelId] = useState('');
   const refreshedTools = useRef(new Set<string>());
   useEffect(() => {
     for (const message of state?.messages || [])
@@ -172,40 +189,36 @@ export function AiPanel({
     follow.current = true;
     const next = await run({
       action: 'send',
+      workspace,
       image:selectedImage,
-      document: attachDocument ? documentContext : undefined,
+      sourceInstruction:preparedSource?.instruction,
+      document: workspace?undefined:attachDocument ? documentContext : undefined,
       text: text.trim(),
-      note: attachNote && note ? { path: note, vaultId } : undefined,
-      course: attachCourse && courseAvailable,
+      note: !workspace&&attachNote && note ? { path: note, vaultId } : undefined,
+      course: !workspace&&attachCourse && courseAvailable,
       allowWrite,
       dirtyPaths,
     });
-    if (next){setText('');setSelectedImage(undefined);}
+    if (next){setText('');setSelectedImage(undefined);setPreparedSource(undefined);}
     setPending(false);
   };
-  const latest = state?.messages.filter((m) => m.role === 'assistant').at(-1),
-    usage = latest?.usage;
-  const estimate = state?.contextEstimate || 0,
-    capacity = state?.config.contextSize || 32768,
-    actual = latest?.lastInput ?? usage?.input,
-    used = actual ?? estimate,
-    pct = Math.min(100, Math.round((used / capacity) * 100));
   const connected = ['siwc', 'antigravity'].includes(state?.config.protocol || '')
     ? !!state?.account?.authorized
     : !!state?.hasKey || state?.config.preset === 'custom';
   return (
-    <section className="ai-panel">
+    <section className="ai-panel" data-conversation-id={state?.conversationId}>
       <header className="ai-heading">
         <span className="ai-brand">
           <Sparkles size={17} />
           伴学助手
         </span>
         <div>
+          <button className="icon-button" aria-label="管理历史会话" onClick={()=>{setHistoryOpen(true);onSettings(true);}}><MessageCircle size={16}/></button>
           <button
             className="icon-button"
             aria-label="新建 AI 对话"
-            title="归档当前对话并开始新的对话"
-            disabled={state?.busy}
+            title="新建会话，旧会话可随时切回"
+            disabled={state?.busy||pending}
             onClick={() => void run({ action: 'clear' })}
           >
             <Plus size={16} />
@@ -220,132 +233,7 @@ export function AiPanel({
           </button>
         </div>
       </header>
-      <button className="ai-model-picker" onClick={() => showSettings(true)}>
-        <span className={connected ? 'connected-dot' : 'idle-dot'} />
-        <span>
-          {state?.config.model || '选择你的 AI 模型'}
-          <small>
-            {AI_PRESETS.find((p) => p.id === state?.config.preset)?.name || '接入设置'} ·{' '}
-            {effortLabels[state?.config.effort || 'auto']}
-          </small>
-        </span>
-        <ChevronRight size={14} />
-      </button>
-      {state && (
-        <div className="ai-quick-controls">
-          <label>
-            服务
-            <select
-              aria-label="对话服务商"
-              value={state.config.preset}
-              disabled={!!state.login}
-              onChange={(e) => void run({ action: 'select', preset: e.target.value })}
-            >
-              {[...new Set([state.config.preset, ...Object.keys(state.profiles)])].map((id) => (
-                <option key={id} value={id}>
-                  {AI_PRESETS.find((p) => p.id === id)?.name || id}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span className="ai-model-field-label">
-              模型
-              <button
-                aria-label="手动输入对话模型"
-                title="服务不返回模型列表时，可输入模型 ID"
-                disabled={!!state.login}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setModelId(state.config.model);
-                  setManualModel(!manualModel);
-                }}
-              >
-                ID
-              </button>
-            </span>
-            <select
-              aria-label="对话模型"
-              value={state.config.model}
-              disabled={!!state.login}
-              onChange={(e) => {
-                if (e.target.value) void run({ action: 'select', model: e.target.value });
-              }}
-            >
-              {!state.config.model && <option value="">先获取模型列表</option>}
-              {[
-                ...new Map(
-                  [{ id: state.config.model, displayName: state.config.model }, ...state.models]
-                    .filter((m) => m.id)
-                    .map((m) => [m.id, m]),
-                ).values(),
-              ].map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.displayName || m.id}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            推理
-            <select
-              aria-label="对话推理强度"
-              value={state.config.effort}
-              disabled={!!state.login}
-              onChange={(e) => void run({ action: 'select', effort: e.target.value as AiConfig['effort'] })}
-            >
-              {[
-                ...new Set([
-                  'auto',
-                  ...(state.models.find((m) => m.id === state.config.model)?.efforts.length
-                    ? state.models.find((m) => m.id === state.config.model)!.efforts
-                    : ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']),
-                  state.config.effort,
-                ]),
-              ].map((effort) => (
-                <option key={effort} value={effort}>
-                  {effortLabels[effort] || effort}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            className="ai-quick-refresh"
-            aria-label="刷新对话模型列表"
-            title="读取当前服务可用模型"
-            disabled={!!state.login}
-            onClick={() => void run({ action: 'models' })}
-          >
-            <RefreshCw size={13} />
-          </button>
-          {manualModel && (
-            <form
-              className="ai-manual-model"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (modelId.trim())
-                  void run({ action: 'select', model: modelId.trim() }).then((next) => {
-                    if (next) setManualModel(false);
-                  });
-              }}
-            >
-              <input
-                aria-label="输入对话模型ID"
-                value={modelId}
-                maxLength={200}
-                placeholder="填写服务提供的模型 ID，Enter 生效"
-                onChange={(e) => setModelId(e.target.value)}
-              />
-              <button type="submit" disabled={!modelId.trim()}>
-                使用
-              </button>
-            </form>
-          )}
-          <small>
-            {state.busy ? '切换将在下次提问生效，当前回答继续。' : '直接选择即可生效，无需打开接入设置。'}
-          </small>
-        </div>
-      )}
+      {state&&<div className="ai-session-tabs" role="tablist" aria-label="会话标签">{state.conversations.filter((c,i)=>i<7||c.id===state.conversationId).map(c=><button role="tab" key={c.id} aria-selected={c.id===state.conversationId} title={c.title} disabled={state.busy||pending} onClick={()=>void run({action:'conversation',operation:'switch',id:c.id})}>{c.title}</button>)}</div>}
       <div
         className="ai-messages"
         ref={log}
@@ -456,6 +344,7 @@ export function AiPanel({
               )}
             </div>
             {m.error && <p className="ai-inline-error">{m.error}</p>}
+            {m.visionUsage&&<small className="vision-turn-usage">视觉专员 {m.visionModel} · {m.visionRequests} 次 · 输入 {number(m.visionUsage.input)} / 输出 {number(m.visionUsage.output)} / 缓存 {number(m.visionUsage.cached)} tokens</small>}
             {m.usage && (
               <small className="ai-turn-usage">
                 输入 {number(m.usage.input)} · 输出 {number(m.usage.output)} · 缓存 {number(m.usage.cached)}{' '}
@@ -464,7 +353,13 @@ export function AiPanel({
             )}
           </article>
         ))}
+      {state?.notice && (
+        <div className="ai-notice" role="status">
+          {state.notice}
+        </div>
+      )}
       </div>
+      {historyOpen&&state&&<ConversationManager state={state} run={run} onClose={()=>{setHistoryOpen(false);onSettings(false);}}/>}
       {error && (
         <div className="ai-error" role="alert">
           {error}
@@ -472,106 +367,6 @@ export function AiPanel({
             <X size={12} />
           </button>
         </div>
-      )}
-      <div className="ai-meter">
-        <button onClick={() => setStats(!stats)} aria-expanded={stats}>
-          <span className="ai-meter-bar">
-            <i style={{ width: pct + '%' }} />
-          </span>
-          <span>
-            上下文 {actual == null ? '≈' : ''}
-            {pct}%
-          </span>
-          <SlidersHorizontal size={12} />
-        </button>
-        <small>本轮 {number(usage?.total)} tokens</small>
-      </div>
-      {stats && (
-        <div className="ai-usage-detail">
-          <div>
-            <span>请求上下文（本地估算）</span>
-            <strong>
-              ≈{number(estimate)} / {number(capacity)}
-            </strong>
-          </div>
-          <div>
-            <span>输入 / 输出（服务商返回）</span>
-            <strong>
-              {number(usage?.input)} / {number(usage?.output)}
-            </strong>
-          </div>
-          <div>
-            <span>缓存命中 / 写入</span>
-            <strong>
-              {number(usage?.cached)} / {number(usage?.cacheWrite)}
-            </strong>
-          </div>
-          <div>
-            <span>本轮加权缓存命中率</span>
-            <strong>
-              {usage?.input && usage.cached != null
-                ? ((100 * usage.cached) / usage.input).toFixed(1) + '%'
-                : '未返回'}
-            </strong>
-          </div>
-          <p>
-            统计包含本轮工具循环的全部模型请求。首轮预热、较短提示、切换模型、压缩历史或服务商缓存过期可能降低命中，稳定前缀不能保证固定命中率。
-          </p>
-          <div>
-            <span>推理 tokens</span>
-            <strong>{number(usage?.reasoning)}</strong>
-          </div>
-          <div>
-            <span>本轮费用</span>
-            <strong>
-              {['siwc', 'antigravity'].includes(state?.config.protocol || '')
-                ? '套餐额度'
-                : usage?.cost == null
-                  ? '未知（未配置单价或数据不全）'
-                  : '≈ $' + usage.cost.toFixed(6)}
-            </strong>
-          </div>
-          <p>
-            占用率优先使用服务商返回的本轮用量；没有返回时使用本地估算。缓存以返回数据为准；费用按手填美元单价估算，不含税费。
-            {state?.omitted ? ' 已跳过 ' + state.omitted + ' 组较早消息，以控制上下文。' : ''}
-          </p>
-        </div>
-      )}
-      {state?.notice && (
-        <div className="ai-notice" role="status">
-          {state.notice}
-        </div>
-      )}
-      <div className="ai-compression-tools">
-        <button
-          aria-label="压缩上下文"
-          disabled={
-            !!state?.busy ||
-            !state?.config.model ||
-            (state?.messages.length || 0) - (state?.memory?.covered || 0) < 8
-          }
-          title="使用当前模型生成历史摘要，会计入服务商用量；原消息不删除"
-          onClick={() => void run({ action: 'compact' })}
-        >
-          {state?.compacting ? <LoaderCircle size={12} className="spin" /> : <SlidersHorizontal size={12} />}
-          压缩上下文
-        </button>
-        <span>
-          {state?.compacting
-            ? '正在生成摘要…'
-            : state?.memory
-              ? `≈${state.memory.before.toLocaleString()} → ${state.memory.after.toLocaleString()} tokens`
-              : '保留最近三轮'}
-        </span>
-      </div>
-      {state?.memory && (
-        <details className="ai-context-memory">
-          <summary>查看较早对话摘要 · 原消息仍保留</summary>
-          <pre>{state.memory.summary}</pre>
-          <small>
-            模型：{state.memory.model} · 压缩用量 {number(state.memory.usage?.total)} tokens
-          </small>
-        </details>
       )}
       <div className="ai-composer">
         <p className="ai-path-hint">
@@ -587,10 +382,11 @@ export function AiPanel({
               void window.studyMate
                 .importImages()
                 .then((report) => {
-                  if (report.paths.length)
-                    setText(
-                      (old) => old + (old ? '\n' : '') + '使用这些知识库图片：\n' + report.paths.join('\n'),
-                    );
+                  if (report.paths.length){
+                    setSelectedImage({vaultId,path:report.paths[0]});
+                    setPreparedSource({label:'图片 · '+report.paths.length+' 张',instruction:'用户选中以下知识库图片，请按需调用view_image读取原图，保留不确定性：'+JSON.stringify(report.paths)});
+                    setText(old=>old.trim()?old:'请分析所选图片并解释内容。');
+                  }
                   if (report.errors.length) setError(report.errors.join('；'));
                 })
                 .catch((e) => setError(e instanceof Error ? e.message : '图片导入失败'));
@@ -599,25 +395,6 @@ export function AiPanel({
             <ImagePlus size={13} />
             图片
           </button>
-          {documentContext && (
-            <label title="仅附文档编号、页码与主动选区；AI 按需调用工具读取，不发送整份文件。">
-              <input
-                type="checkbox"
-                checked={attachDocument}
-                onChange={(e) => setAttachDocument(e.target.checked)}
-              />
-              文档 · 第{documentContext.page}页{documentContext.selection ? ' · 选区' : ''}
-            </label>
-          )}
-          <label title={note ? note + ' · 先附路径，AI 可按需读取所需行' : '先打开笔记'}>
-            <input
-              type="checkbox"
-              checked={attachNote}
-              disabled={!note}
-              onChange={(e) => setAttachNote(e.target.checked)}
-            />
-            笔记路径
-          </label>
           <label title="开启后，AI 可按你的要求创建、替换、保存笔记或插图；原文自动备份，未保存草稿受保护。">
             <input
               type="checkbox"
@@ -627,17 +404,10 @@ export function AiPanel({
             />
             允许保存
           </label>
-          <label title="发送时冻结课程和进度，模型按需自动读取字幕、缓存画面，或在后台观看原视频片段">
-            <input
-              type="checkbox"
-              checked={attachCourse}
-              disabled={!courseAvailable}
-              onChange={(e) => setAttachCourse(e.target.checked)}
-            />
-            自动看课
-          </label>
+
         </div>
-        {selectedImage&&<div className="ai-image-reference"><span>待查看原图：{selectedImage.path}</span><button aria-label="移除原图引用" onClick={()=>setSelectedImage(undefined)}>×</button></div>}
+        <div className="auto-resource-chips" aria-label="自动附加的工作台资料">{workspace?.map((r,i)=><span key={i} title={r.kind==='note'?r.path:r.kind==='document'?r.context.id:r.sourceId}>{r.kind==='note'?'笔记 · '+r.path.split('/').at(-1):r.kind==='document'?'课件 · 第'+r.context.page+'页':'当前可见课程'}</span>)}{!workspace?.length&&<span>没有可见资料 · 可直接提问</span>}</div>
+        {preparedSource?<div className="ai-image-reference" aria-label="待参考资料"><span>参考来源 · {preparedSource.label}</span><button aria-label="移除资料引用" onClick={()=>{setPreparedSource(undefined);setSelectedImage(undefined);}}>×</button></div>:selectedImage&&<div className="ai-image-reference"><span>待查看原图：{selectedImage.path}</span><button aria-label="移除原图引用" onClick={()=>setSelectedImage(undefined)}>×</button></div>}
         <textarea
           aria-label="伴学提问"
           value={text}
@@ -651,7 +421,7 @@ export function AiPanel({
           }}
         />
         <div className="ai-send-row">
-          <small>{state?.busy ? '正在回答 · 可随时停止' : 'Enter 发送 · 资料按次附加'}</small>
+          <ComposerControls state={state} run={run}/>
           {state?.busy ? (
             <button
               className="ai-send"
@@ -672,6 +442,7 @@ export function AiPanel({
           )}
         </div>
       </div>
+      <UsageFooter state={state}/>
       {settings &&
         state &&
         createPortal(
@@ -1067,6 +838,7 @@ function AiSettings({
                 使用当前模型将较早消息整理为摘要，保留最近三轮。摘要可查看，原消息不删除；失败不替换原上下文。压缩请求会使用服务商额度，不等于缓存命中。笔记只附加路径，本轮没有本地文件读取或修改工具。
               </p>
             </section>
+            <VisionRoleSettings state={state} run={run}/>
             {!subscription && (
               <details className="ai-advanced">
                 <summary>高级设置 · 接口与费用估算</summary>

@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { ContextAnchor, LearningSource, ObservationBinding, PlaybackState } from '../shared/contracts';
 import { AppError } from './errors';
 import { atomicJson, readJson, SerialQueue } from './storage';
+import type{LearningVisit}from'../shared/library';
 
 const sensitive = /^(token|cookie|authorization|auth|access_key|sessdata|bili_jct|dedeuserid)$/i;
 export function normalizeWebUrl(input: string): string {
@@ -44,11 +45,13 @@ export class SourceRegistry extends EventEmitter {
   private sequences = new Map<string, number>();
   private queue = new SerialQueue();
   private persistenceError: unknown;
+  private visits:LearningVisit[]=[];private historySaved=0;
   constructor(private readonly stateFile: string) {
     super();
   }
   async initialize(): Promise<void> {
     const saved = await readJson<LearningSource[]>(this.stateFile, []);
+    this.visits=await readJson<LearningVisit[]>(this.stateFile+'.history.json',[]);
     if (!Array.isArray(saved)) throw new AppError('STORAGE_CORRUPT', '学习来源列表格式不正确。');
     for (const source of saved) {
       if (!source?.id || !source.url || !source.canonicalKey)
@@ -114,6 +117,12 @@ export class SourceRegistry extends EventEmitter {
   get active(): ObservationBinding | null {
     return this.current ? { ...this.current } : null;
   }
+  recentLearning(){const rows=this.visits.filter(v=>this.sources.has(v.sourceId)&&v.duration>0),known=new Set(rows.map(v=>v.sourceId));const legacy=this.list().filter(s=>!known.has(s.id)&&['bilibili','local-video'].includes(s.kind)).map(s=>({id:'legacy-'+s.id,sourceId:s.id,title:s.title,startedAt:s.createdAt,lastSeenAt:s.updatedAt,position:0,duration:0,ranges:[] as[number,number][],inferred:true}));return[...rows.reverse(),...legacy].sort((a,b)=>b.lastSeenAt.localeCompare(a.lastSeenAt)).slice(0,100).map(v=>structuredClone(v));}
+  recordPlayback(sourceId:string,time:number,duration:number,paused:boolean){if(!this.current||this.current.sourceId!==sourceId||duration<=0)return;const now=new Date().toISOString();let visit=this.visits.find(v=>v.id===this.current!.visitId);if(!visit){visit={id:this.current.visitId,sourceId,title:this.get(sourceId).title,startedAt:now,lastSeenAt:now,position:time,duration,ranges:[]};this.visits.push(visit);this.visits=this.visits.slice(-500);}
+    const last=visit.ranges.at(-1);if(!paused){if(last&&Math.abs(time-last[1])<20)last[1]=Math.max(last[1],time);else visit.ranges.push([time,time]);visit.ranges=visit.ranges.slice(-80);}visit.title=this.get(sourceId).title;visit.lastSeenAt=now;visit.position=time;visit.duration=duration;
+    if(Date.now()-this.historySaved>5000){this.historySaved=Date.now();void this.queue.run(()=>atomicJson(this.stateFile+'.history.json',this.visits)).catch(e=>{this.persistenceError=e;});}
+  }
+  async remove(id:string){this.get(id);if(this.current?.sourceId===id)this.clear();this.sources.delete(id);this.visits=this.visits.filter(v=>v.sourceId!==id);await this.queue.run(async()=>{await atomicJson(this.stateFile,[...this.sources.values()]);await atomicJson(this.stateFile+'.history.json',this.visits);});this.emit('changed');}
   get(id: string): LearningSource {
     const source = this.sources.get(id);
     if (!source) throw new AppError('SOURCE_NOT_FOUND', '该学习来源不存在。');
@@ -181,6 +190,7 @@ export class SourceRegistry extends EventEmitter {
       });
   }
   async flush(): Promise<void> {
+    await this.queue.run(()=>atomicJson(this.stateFile+'.history.json',this.visits));
     await this.queue.flush();
     if (this.persistenceError) throw this.persistenceError;
   }
