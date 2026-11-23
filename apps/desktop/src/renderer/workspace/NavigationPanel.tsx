@@ -16,6 +16,7 @@ import {
   Search,
   LibraryBig,
   MonitorPlay,
+  CalendarClock,
 } from 'lucide-react';
 import type { AppState, NoteFile, SearchHit } from '../../shared/contracts';
 import './panels.css';
@@ -30,6 +31,7 @@ export type NavigationAction =
   | 'vault'
   | 'manage'
   | 'learning'
+  | 'schedules'
   | 'open-folder'
   | 'open-document'
   | 'open-local'
@@ -126,6 +128,7 @@ export function NavigationPanel({
           <Globe2 size={16} />
           课程浏览器
         </button>
+        <button className="nav-item" onClick={() => onAction('schedules')}><CalendarClock size={16}/>定时学习任务</button>
       </nav>
       <div className="navigation-tabs" role="tablist" aria-label="资料分类">
         {(

@@ -1,0 +1,128 @@
+.remote-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: #152d3c66;
+}
+.remote-panel {
+  box-sizing: border-box;
+  width: min(820px, 94vw);
+  max-height: 88vh;
+  overflow: auto;
+  background: var(--panel, #fff);
+  color: var(--text, #263e39);
+  border: 1px solid #dce9e3;
+  border-radius: 20px;
+  padding: 26px;
+  box-shadow: 0 24px 90px #1b463a22;
+}
+.remote-panel header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.remote-panel h2 {
+  margin: 0;
+}
+.remote-panel p,
+.remote-panel footer {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #62746e;
+}
+.remote-panel button,
+.remote-panel select {
+  padding: 9px 13px;
+  border: 1px solid #d9e7df;
+  border-radius: 9px;
+  background: #f5faf7;
+  color: inherit;
+  cursor: pointer;
+}
+.remote-panel .primary {
+  background: #227b65;
+  color: white;
+}
+.remote-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.remote-actions label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+.remote-pair {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  background: #f6faf8;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 20px 0;
+}
+.remote-pair img {
+  box-sizing: content-box;
+  flex: 0 0 320px;
+  width: 320px;
+  height: 320px;
+  max-width: 100%;
+  padding: 8px;
+  border: 1px solid #dce9e3;
+  border-radius: 10px;
+  background: #fff;
+  object-fit: contain;
+}
+.remote-pair code {
+  word-break: break-all;
+  font-size: 12px;
+}
+.remote-device {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 0;
+  border-bottom: 1px solid #e5ede8;
+}
+.remote-device span {
+  flex: 1;
+  font-size: 12px;
+  color: #62746e;
+}
+.remote-panel .remote-error {
+  color: #ac3636;
+}
+.remote-panel footer {
+  margin-top: 20px;
+}
+@media (max-width: 700px) {
+  .remote-pair {
+    flex-direction: column;
+  }
+  .remote-pair img {
+    flex: none;
+    width: min(320px, 78vw);
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
+.remote-launch {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 20;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1px solid #d3e6dc;
+  background: #f4fbf7;
+  color: #21674f;
+  font-size: 12px;
+  cursor: pointer;
+}

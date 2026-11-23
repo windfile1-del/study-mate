@@ -30,6 +30,14 @@ const files =
         .map((f) => resolve(testDir, f.name))
     : [];
 const commands = {
+  'generate-remote-contracts':['node_modules/tsx/dist/cli.mjs','scripts/generate-remote-contracts.ts'],
+  'check-remote-contracts':['node_modules/tsx/dist/cli.mjs','scripts/generate-remote-contracts.ts','--check'],
+  'smoke-remote':['scripts/remote-smoke.mjs'],
+  'smoke-remote-android':['scripts/remote-smoke.mjs','--android'],
+  'smoke-remote-android-stable':['scripts/remote-smoke.mjs','--android','--video','--stable'],
+  'smoke-remote-android-video':['scripts/remote-smoke.mjs','--android','--video'],
+  'smoke-network-referrer':['node_modules/tsx/dist/cli.mjs','scripts/network-referrer-smoke.ts'],
+  'build-mobile-reader':['node_modules/vite/bin/vite.js','build','--config','scripts/mobile-reader.config.ts'],
   dev: ['node_modules/electron-vite/bin/electron-vite.js', 'dev'],
   build: ['node_modules/electron-vite/bin/electron-vite.js', 'build'],
   check: ['node_modules/typescript/bin/tsc', '--noEmit'],
@@ -53,6 +61,7 @@ const commands = {
   'smoke-polish': ['scripts/polish-smoke.mjs'],
   'smoke-documents': ['scripts/documents-smoke.mjs'],
   'smoke-learning': ['scripts/learning-smoke.mjs'],
+  'smoke-schedules': ['scripts/schedules-smoke.mjs'],
   'smoke-video':['scripts/video-smoke.mjs'],
   'smoke-reader':['scripts/reader-smoke.mjs'],
   'smoke-reader-packed':['scripts/reader-smoke.mjs','--packed'],

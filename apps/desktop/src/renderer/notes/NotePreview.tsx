@@ -9,6 +9,7 @@ import 'katex/dist/katex.min.css';
 import './notes.css';
 
 interface Props {
+  client?: ReaderClient;
   source: string;
   path: string;
   vaultId: string;
@@ -18,7 +19,32 @@ interface Props {
   initialOffset?: number;
   onOffset?: (offset: number) => void;
   restoreScope?: string;
+  followOutput?: boolean;
+  hideTools?: boolean;
+  onCompiled?: (compiled: CompiledNote | null) => void;
+  topAddon?: ReactNode;
+  bottomAddon?: ReactNode;
+  renderBlockAddon?: (blockIndex: number) => ReactNode;
+  contentOverlay?: (info: {
+    totalHeight: number;
+    blockOffsets?: readonly { index: number; start: number; size: number }[];
+  }) => ReactNode;
 }
+export interface ReaderClient {
+  noteImage(vaultId: string, base: string, target: string, wiki: boolean): Promise<string>;
+  resolveNoteLink(
+    vaultId: string,
+    base: string,
+    target: string,
+    wiki: boolean,
+  ): Promise<{ path: string; anchor: string }>;
+  readNote(path: string): Promise<{ path: string; content: string }>;
+}
+const desktopReader: ReaderClient = {
+  noteImage: (...args) => window.studyMate.noteImage(...args),
+  resolveNoteLink: (...args) => window.studyMate.resolveNoteLink(...args),
+  readNote: (path) => window.studyMate.readNote(path),
+};
 const measurements = new Map<string, { source: string; snapshot: VirtualItem[] }>();
 const isExternal = (target: string) => /^[a-z][\w+.-]*:/i.test(target) || target.startsWith('//');
 function NoteImage({
@@ -49,7 +75,7 @@ function NoteImage({
           setError('外部图片未自动加载，可在源码中查看链接。');
           return;
         }
-        void window.studyMate.noteImage(context.vaultId, context.path, target, wiki).then(
+        void (context.client || desktopReader).noteImage(context.vaultId, context.path, target, wiki).then(
           (value) => {
             if (live) setUrl(value);
           },
@@ -95,12 +121,12 @@ function EmbeddedNote({ target, context }: { target: string; context: Props }) {
     [error, setError] = useState('');
   useEffect(() => {
     let live = true;
-    void window.studyMate
+    void (context.client || desktopReader)
       .resolveNoteLink(context.vaultId, context.path, target, true)
       .then(async (link) => {
         if (link.path === context.path || (context.depth || 0) >= 1)
           throw new Error('循环或多层嵌入，请点击引用打开原笔记。');
-        const note = await window.studyMate.readNote(link.path);
+        const note = await (context.client || desktopReader).readNote(link.path);
         if (live) setDocument({ ...note, anchor: link.anchor });
       })
       .catch((cause) => {
@@ -234,6 +260,12 @@ export const NotePreview = memo(function NotePreview(props: Props) {
   const firstPaint = useRef(false);
   const identity = useRef('');
   const scroll = useRef<HTMLDivElement>(null);
+  const following = useRef(true);
+  const onCompiledRef = useRef(props.onCompiled);
+  onCompiledRef.current = props.onCompiled;
+  useEffect(() => {
+    onCompiledRef.current?.(compiled);
+  }, [compiled]);
   useEffect(() => {
     const controller = new AbortController();
     const key = props.vaultId + '\n' + props.path;
@@ -281,6 +313,14 @@ export const NotePreview = memo(function NotePreview(props: Props) {
     overscan: 4,
     initialMeasurementsCache: stored.current?.source === props.source ? stored.current.snapshot : [],
   });
+  const totalHeight = virtual.getTotalSize();
+  useEffect(() => {
+    if (!props.followOutput || !following.current || !compiled?.blocks.length) return;
+    const frame = requestAnimationFrame(() =>
+      virtual.scrollToIndex(compiled.blocks.length - 1, { align: 'end' }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [props.followOutput, compiled, totalHeight]);
   useEffect(
     () => () => {
       measurements.delete(restoreKey);
@@ -327,31 +367,33 @@ export const NotePreview = memo(function NotePreview(props: Props) {
       data-parse-ms={compiled?.milliseconds}
       data-block-count={compiled?.blocks.length || 0}
     >
-      <div className="note-reading-tools">
-        <span>
-          {loading
-            ? '后台排版中…'
-            : error
-              ? '解析未完成'
-              : parsing
-                ? '余文后台排版中…'
-                : compiled?.warnings
-                  ? '部分公式无法识别，已保留原文'
-                  : 'Obsidian 常用语法'}
-        </span>
-        {compiled && compiled.headings.length > 0 && (
-          <select aria-label="笔记目录" value="" onChange={(event) => goTo(event.target.value)}>
-            <option value="" disabled>
-              目录 · {compiled.headings.length} 节
-            </option>
-            {compiled.headings.map((item) => (
-              <option key={item.id} value={item.id}>
-                {'　'.repeat(Math.max(0, item.depth - 1)) + item.text.slice(0, 100)}
+      {!props.hideTools && (
+        <div className="note-reading-tools">
+          <span>
+            {loading
+              ? '后台排版中…'
+              : error
+                ? '解析未完成'
+                : parsing
+                  ? '余文后台排版中…'
+                  : compiled?.warnings
+                    ? '部分公式无法识别，已保留原文'
+                    : 'Obsidian 常用语法'}
+          </span>
+          {compiled && compiled.headings.length > 0 && (
+            <select aria-label="笔记目录" value="" onChange={(event) => goTo(event.target.value)}>
+              <option value="" disabled>
+                目录 · {compiled.headings.length} 节
               </option>
-            ))}
-          </select>
-        )}
-      </div>
+              {compiled.headings.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {'　'.repeat(Math.max(0, item.depth - 1)) + item.text.slice(0, 100)}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
       {compiled?.properties && (
         <details className="note-properties">
           <summary>笔记属性</summary>
@@ -369,6 +411,10 @@ export const NotePreview = memo(function NotePreview(props: Props) {
           if (compiled) firstPaint.current = true;
         }}
         onScroll={(event) => {
+          if (props.followOutput) {
+            const element = event.currentTarget;
+            following.current = element.scrollHeight - element.scrollTop - element.clientHeight < 80;
+          }
           if (firstPaint.current) props.onOffset?.(event.currentTarget.scrollTop);
         }}
       >
@@ -380,6 +426,7 @@ export const NotePreview = memo(function NotePreview(props: Props) {
             <p>正在后台解析公式与笔记内容，可以继续切换笔记。</p>
           </div>
         )}
+        {!loading && props.topAddon}
         {compiled && (
           <div
             className="note-virtual-content wmde-markdown"
@@ -400,10 +447,16 @@ export const NotePreview = memo(function NotePreview(props: Props) {
                 }}
               >
                 <Block node={compiled.blocks[item.index]} context={context} />
+                {props.renderBlockAddon?.(item.index)}
               </div>
             ))}
+            {props.contentOverlay?.({
+              totalHeight: virtual.getTotalSize(),
+              blockOffsets: virtual.measurementsCache,
+            })}
           </div>
         )}
+        {!loading && props.bottomAddon}
       </div>
     </div>
   );

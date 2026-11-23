@@ -2,6 +2,8 @@ import{LibraryManager}from'./workspace/LibraryManager';import{visibleResources,t
 import {NavigationPanel,type NavigationAction} from './workspace/NavigationPanel';
 import {PanelRightClose,ExternalLink as PanelPopout} from 'lucide-react';
 import { LearningPanel } from './learning/LearningPanel';
+import { SchedulePanel } from './learning/SchedulePanel';
+import { RemotePanel } from './remote/RemotePanel';
 import { parseVideoCitation, type OcrResult } from '../shared/recognition';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { NotePane } from './workspace/NotePane';
@@ -93,6 +95,9 @@ export default function App() {
   const [navigationFloating,setNavigationFloating]=useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [learningOpen, setLearningOpen] = useState(false);
+  const [schedulesOpen, setSchedulesOpen] = useState(false);
+  const [remoteOpen,setRemoteOpen]=useState(false);
+  const [remoteError,setRemoteError]=useState('');
   const [aiDraft, setAiDraft] = useState<{
     id: string;
     text: string;
@@ -529,6 +534,7 @@ export default function App() {
               (videoLocation === 'side' && assistantMode === 'docked' && dockOpen && dockActive === 'video')) &&
             !helpOpen &&
             !learningOpen &&
+            !remoteOpen &&
             !libraryOpen &&
             !aiSettingsOpen &&
             !dragging &&
@@ -555,6 +561,7 @@ export default function App() {
     assistantMode,
     helpOpen,
     learningOpen,
+    remoteOpen,
     libraryOpen,
     aiSettingsOpen,
     videoLocation,
@@ -762,7 +769,7 @@ export default function App() {
   }
 
   const navigationAction=(target:NavigationAction,id?:string,page?:number)=>{
-    if(target==='manage'){setLibraryPath(undefined);setLibraryOpen(true);}else if(target==='home')setMode('home');else if(target==='browser')setMode('browser');else if(target==='note'&&id)void openNote(id);else if(target==='document'&&id)activateDocument(id,page);else if(target==='video'&&id)void openVideoEvidence(id,page||0);else if(target==='import-notes')void importNotes();else if(target==='create-note')void createNote();else if(target==='vault')void chooseVault();else if(target==='learning')setLearningOpen(true);else if(target==='open-folder')openFolder();else if(target==='open-document')void openDocument();else if(target==='open-local')void openLocal();else if(target==='note-changed'&&id&&desk.desk.sessions[id]&&!isDirty(desk.desk.sessions[id]))void desk.reload(id);
+    if(target==='manage'){setLibraryPath(undefined);setLibraryOpen(true);}else if(target==='schedules')setSchedulesOpen(true);else if(target==='home')setMode('home');else if(target==='browser')setMode('browser');else if(target==='note'&&id)void openNote(id);else if(target==='document'&&id)activateDocument(id,page);else if(target==='video'&&id)void openVideoEvidence(id,page||0);else if(target==='import-notes')void importNotes();else if(target==='create-note')void createNote();else if(target==='vault')void chooseVault();else if(target==='learning')setLearningOpen(true);else if(target==='open-folder')openFolder();else if(target==='open-document')void openDocument();else if(target==='open-local')void openLocal();else if(target==='note-changed'&&id&&desk.desk.sessions[id]&&!isDirty(desk.desk.sessions[id]))void desk.reload(id);
   };
   const resource=(pane:Pane):WorkspaceResource|undefined=>{const kind=pane==='main'?mode:dockActive;if(kind==='note'){const path=desk.desk[pane].active;if(path)return{kind:'note',path,vaultId:state?.vaultId||''};}if(kind==='document'){const id=docActive[pane],doc=state?.documents.find(d=>d.id===id);if(id&&doc)return{kind:'document',context:docContexts[pane+':'+id]||{id,revision:doc.revision,page:docPage[pane+':'+id]||doc.lastPage||1}};}if((kind==='browser'&&videoLocation==='main')||(kind==='video'&&videoLocation==='side')){const id=state?.activeBinding?.sourceId;if(id&&state?.playback?.sourceId===id&&state.playback.duration>0)return{kind:'video',sourceId:id};}};
   const autoResources=visibleResources({main:resource('main'),side:resource('side'),sideVisible:assistantMode==='docked'&&dockOpen});
@@ -1597,6 +1604,9 @@ export default function App() {
         />
       )}
       {libraryOpen&&state&&<LibraryManager state={state} path={libraryPath} onClose={()=>setLibraryOpen(false)} onRemoved={(kind,id)=>{if(kind==='note'){desk.close('main',id);desk.close('side',id);if(desk.desk.main.active===id)setMode('home');}if(kind==='document'){closeDocument(id,'main');closeDocument(id,'side');}}} onRestored={path=>{if(desk.desk.sessions[path])void desk.reload(path);}} onVideo={(id,time)=>void openVideoEvidence(id,time)}/>}
+      {schedulesOpen&&<SchedulePanel onClose={()=>setSchedulesOpen(false)}/>}
+      <button className="remote-launch" title="连接 Android 平板" onClick={()=>{setRemoteError('');setRemoteOpen(true);}}>平板连接</button>
+      {remoteOpen&&<RemotePanel initialError={remoteError} onClose={()=>setRemoteOpen(false)} onPlaybackRequested={()=>{setMode('browser');setVideoLocation('main');setRemoteOpen(false);}} onPlaybackResumed={()=>setRemoteError('')} onPlaybackFailed={message=>{setRemoteError(message);setRemoteOpen(true);}}/>}
       {helpOpen && (
         <div className="modal-overlay" onClick={() => setHelpOpen(false)}>
           <section

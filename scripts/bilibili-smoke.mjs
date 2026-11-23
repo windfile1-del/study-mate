@@ -12,7 +12,7 @@ delete env.ELECTRON_RUN_AS_NODE;
 delete env.ELECTRON_RENDERER_URL;
 const result = {
   passed: false,
-  url: 'https://www.bilibili.com/video/BV1GJ411x7h7/?p=1',
+  url: process.env.STUDYMATE_BILIBILI_URL || 'https://www.bilibili.com/video/BV1GJ411x7h7/?p=1',
   at: new Date().toISOString(),
   account: 'isolated profile, not signed in',
 };

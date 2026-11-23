@@ -40,7 +40,7 @@ export const panelRequest = z.discriminatedUnion('action', [
         'import-notes',
         'create-note',
         'vault',
-        'learning','manage',
+        'learning','manage','schedules',
         'open-folder',
         'open-document',
         'open-local',

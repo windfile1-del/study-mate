@@ -1,0 +1,884 @@
+/* Shared Handwriting Pad & Ink Overlay Styles (Mobile Reader + Desktop NotePreview) */
+.ink-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fef7ed;
+  border: 1px solid rgba(217, 119, 6, 0.28);
+  color: #92400e;
+  font-size: 12px;
+}
+
+.ink-toast button {
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  background: #ffffff;
+  color: #92400e;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.pad-jump-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.085);
+  font-size: 11.5px;
+  color: #64748b;
+  overflow-x: auto;
+}
+
+.pad-jump-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+/* Arbitrary-Line Insert Banner & Inline Insertion Slots */
+.pad-insert-banner {
+  position: sticky;
+  top: 0;
+  z-index: 42;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(15, 118, 110, 0.28);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.pad-insert-banner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pad-insert-banner-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #0f172a;
+}
+
+.pad-insert-banner-title span {
+  font-size: 11px;
+  color: #0f766e;
+}
+
+.pad-insert-banner-quick {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pad-insert-banner-opts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pad-insert-title-input {
+  flex: 1 1 160px;
+  min-width: 120px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 8px;
+  padding: 5px 9px;
+  font-size: 12px;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.pad-insert-bg-pills {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pad-insert-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 4px 0 8px;
+  padding: 5px 4px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #0f766e;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.pad-insert-slot-line {
+  flex: 1;
+  height: 0;
+  border-top: 1.5px dashed rgba(15, 118, 110, 0.35);
+}
+
+.pad-insert-slot-pill {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.085);
+  border: 1px solid rgba(15, 118, 110, 0.3);
+  color: #0f766e;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+
+.pad-insert-slot:hover .pad-insert-slot-pill,
+.pad-insert-slot:active .pad-insert-slot-pill {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+/* Shared Ink Tool Controls */
+.ink-tool-strip {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.ink-tool-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.ink-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(15, 23, 42, 0.12);
+  flex-shrink: 0;
+}
+
+.ink-tool-group,
+.ink-color-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.ink-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  color: #334155;
+  border-radius: 8px;
+  padding: 4px 9px;
+  min-height: 28px;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.brush-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.18);
+}
+
+.width-dot-icon {
+  display: inline-block;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.ink-btn.active {
+  background: rgba(15, 118, 110, 0.085);
+  border-color: rgba(15, 118, 110, 0.28);
+  color: #0f766e;
+  font-weight: 600;
+}
+
+.ink-btn.primary.active {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+
+.ink-btn.danger {
+  color: #b91c1c;
+}
+
+.ink-btn.danger.active {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.ink-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ink-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.18);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.ink-swatch.active {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 3.5px #0f766e;
+  transform: scale(1.06);
+}
+
+/* Draggable & Minimizable Floating Ink Toolbox */
+.floating-ink-toolbox {
+  position: fixed;
+  z-index: 1250;
+  width: min(560px, calc(100vw - 16px));
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(15, 118, 110, 0.3);
+  border-radius: 14px;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.18);
+  font-family: inherit;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.floating-ink-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 13px 13px 0 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.floating-ink-header:active {
+  cursor: grabbing;
+}
+
+.floating-ink-grip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.floating-grip-dots {
+  font-size: 13px;
+  color: #94a3b8;
+  letter-spacing: -1px;
+  flex-shrink: 0;
+}
+
+.floating-ink-grip strong {
+  font-size: 12px;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.floating-ink-hint {
+  font-size: 10.5px;
+  color: #0f766e;
+  background: rgba(15, 118, 110, 0.085);
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.floating-ink-win-btns {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.floating-ink-notice {
+  padding: 4px 10px;
+  background: #fef7ed;
+  border-bottom: 1px solid rgba(217, 119, 6, 0.18);
+  color: #92400e;
+  font-size: 11px;
+}
+
+.floating-ink-row2 {
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  background: rgba(248, 250, 252, 0.72);
+  border-radius: 0 0 13px 13px;
+}
+
+.floating-ink-bubble {
+  position: fixed;
+  z-index: 1250;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(15, 118, 110, 0.42);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.floating-ink-bubble-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: grab;
+  touch-action: none;
+}
+
+.floating-bubble-expand {
+  font-size: 11px;
+  color: #0f766e;
+  font-weight: 500;
+}
+
+.floating-bubble-done {
+  border: 0;
+  border-left: 1px solid rgba(15, 23, 42, 0.1);
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 8px 11px;
+  cursor: pointer;
+}
+
+/* Pen Parameters & Extended Color Popover inside Floating Toolbox */
+.ink-settings-panel {
+  padding: 10px 12px;
+  background: #ffffff;
+  border-top: 1px solid rgba(15, 23, 42, 0.085);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ink-settings-panel.floating-popover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border: 1px solid rgba(15, 118, 110, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.ink-settings-panel.floating-popover.pos-above {
+  bottom: calc(100% + 6px);
+}
+
+.ink-settings-panel.floating-popover.pos-below {
+  top: calc(100% + 6px);
+}
+
+.ink-settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #0f172a;
+}
+
+.ink-settings-head small {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.ink-preview-svg {
+  width: 100%;
+  max-width: 340px;
+  height: 48px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.085);
+  align-self: center;
+}
+
+.ink-presets-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ink-setting-label {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.ink-preset-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ink-preset-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #f8fafc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ink-preset-btn.active {
+  border-color: #0f766e;
+  background: rgba(15, 118, 110, 0.085);
+}
+
+.ink-preset-btn > span {
+  display: block;
+  border-radius: 999px;
+}
+
+.ink-slider-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.ink-slider-row > span {
+  min-width: 104px;
+  flex-shrink: 0;
+}
+
+.ink-slider-row > input[type='range'] {
+  flex: 1;
+  accent-color: #0f766e;
+  height: 22px;
+}
+
+.ink-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 7px;
+}
+
+@media (min-width: 600px) {
+  .ink-palette-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+.ink-palette-cell {
+  height: 28px;
+  border-radius: 8px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.16);
+  cursor: pointer;
+  padding: 0;
+}
+
+.ink-palette-cell.active {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 3.5px #0f766e;
+}
+
+.ink-custom-color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+  border-top: 1px solid rgba(15, 23, 42, 0.085);
+}
+
+.ink-custom-color-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.ink-custom-color-picker input[type='color'] {
+  width: 34px;
+  height: 26px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.ink-custom-color-picker code {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* Persistent Handwriting Pad Card */
+.handwriting-pad {
+  margin: 12px 0;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.handwriting-pad.clean-mode {
+  border-color: rgba(15, 23, 42, 0.09);
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.03);
+}
+
+.handwriting-pad.writing {
+  border-color: rgba(15, 118, 110, 0.55);
+  box-shadow: 0 3px 14px rgba(15, 118, 110, 0.11);
+}
+
+.handwriting-pad.orphaned {
+  border-color: rgba(217, 119, 6, 0.42);
+}
+
+.pad-collapsed-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #f8fafc;
+}
+
+.pad-collapsed-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pad-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px 10px;
+  background: #f6f8fb;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.085);
+}
+
+.pad-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pad-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #0f766e;
+  background: rgba(15, 118, 110, 0.085);
+  padding: 2px 6px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.pad-title-btn {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pad-title-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid rgba(15, 118, 110, 0.3);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pad-count {
+  font-size: 11px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.pad-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.pad-anchor-select {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 7px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 11.5px;
+  padding: 3px 6px;
+  min-height: 28px;
+  max-width: 180px;
+}
+
+.pad-orphan-banner {
+  padding: 6px 10px;
+  background: #fef7ed;
+  color: #92400e;
+  font-size: 11.5px;
+  border-bottom: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.pad-stage-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.pad-corner-controls {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pad-corner-pill {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(6px);
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 3px 9px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.pad-corner-pill.primary {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+
+.pad-canvas-box {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.pad-canvas-box.allow-mouse-writing {
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.pad-canvas-box.pad-bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.pad-canvas-box.pad-bg-ruled {
+  background-image: linear-gradient(to bottom, transparent 27px, rgba(15, 118, 110, 0.12) 28px);
+  background-size: 100% 28px;
+}
+
+.pad-canvas-box.pad-bg-dot {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.18) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.pad-canvas-layer,
+.pad-canvas-layer.pad-canvas-live {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.pad-empty-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  color: #94a3b8;
+  font-size: 12px;
+  padding: 12px;
+  text-align: center;
+}
+
+.pad-resize-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px;
+  background: #f8fafc;
+  border-top: 1px solid rgba(15, 23, 42, 0.085);
+}
+
+.pad-resize-grip {
+  flex: 1;
+  font-size: 11px;
+  color: #64748b;
+  cursor: ns-resize;
+  touch-action: none;
+  padding: 3px 4px;
+}
+
+.pad-height-btns {
+  display: flex;
+  gap: 4px;
+}
+
+/* Pad Fullscreen Modal */
+.pad-fullscreen-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: #f3f5f8;
+  display: flex;
+  flex-direction: column;
+}
+
+.pad-fullscreen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.085);
+}
+
+.pad-fullscreen-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+}
+
+.pad-fullscreen-stage {
+  margin: 0 auto;
+  min-width: 100%;
+  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+@media (min-width: 600px) {
+  .pad-fullscreen-stage {
+    min-width: 0;
+    max-width: 1400px;
+  }
+}
+
+/* Temporary Markdown Overlay Ink */
+.temp-ink-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 15;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Lock Chromium compositor touch scrolling in writing mode so S-Pen never scrolls the page;
+   finger scrolling and tap clicks are handled cleanly by the finger scroll controller. */
+.note-preview-scroll.temp-ink-active {
+  touch-action: none;
+}
+
+.temp-ink-tile,
+.temp-ink-live {
+  position: absolute;
+  left: 0;
+  border: 0;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.temp-ink-live {
+  top: 0;
+  visibility: hidden;
+}

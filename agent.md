@@ -1,5 +1,51 @@
 # Study Mate 开发交接
 
+## 2026-11-20 配对二维码扫描优化
+
+电脑「平板连接」二维码现只包含 serverId、地址、端口、SPKI pin、一次性 secret 和过期时间，不再重复携带完整 RSA 证书；平板从 TLS 握手取得证书后校验有效期、主机名与二维码中的公钥 pin。实测二维码从 1526 字符/145 模块降至 251 字符/61 模块。手动复制连接信息仍保留完整证书。Android 使用专用 ZXing 扫描页，开启连续对焦、扫码场景模式、测光/曝光、低光自动手电与 `TRY_HARDER`。桌面源图 `840px`、显示 `320px`，M 级纠错和 4 模块留白。已通过 check、111/111 测试、Electron 构建、Android app/androidTest 构建；真实摄像头现场扫码仍是独立未验收项。详见 docs/开发日志.md。
+
+## 2026-11-20 平板按需笔记同步
+
+桌面「平板连接」增加按篇勾选。同一版本协议支持经原有配对 HTTPS 下发，或经 Google Drive 应用数据目录上传。Android「同步笔记」合并两条来源的版本，断网时从 Keystore 加密副本读取正文和直接引用的图片。桌面 OAuth 用系统浏览器、回环回调和 PKCE，平板用 Google Play 授权、只发读取请求。配置和容量边界见 docs/20-平板笔记同步.md。
+
+## 2026-11-06 Android 阶段 4（当前范围已验收）
+
+用户反馈无法连接，实际电脑保存监听 VMware 192.168.137.1，Wi-Fi 为 192.168.1.5；用户改选 WLAN 后确认已连接。两端 VPN 保持开启。新版本优先物理 Wi-Fi、标识虚拟网卡、平板 NO_PROXY/Wi-Fi SocketFactory、手动更新端口、凭据刷新及 mDNS 串行解析/身份唯一名称/显式监听地址。未关闭 VPN、防火墙或强退实际电脑服务。源码启动器优先当前 out；旧发布包未改。
+
+近期加密缓存、128MiB LRU 视频缓冲、加密未同步播放位置与不确定请求日志已接入；离线仅阅读缓存，不自动重发 AI。撤销/切库阻止旧授权缓存继续参与在线操作。详细边界与命令见 docs/19-局域网连接与近期缓存.md。断线测试只停止隔离服务，instrumentation finally 恢复平板原有配对。全量 111/111、后续受影响 9/9、类型/契约与两端构建通过；三星实际5秒断线/缓存阅读/新端口重连、图片/问答/播放器/接力/前后台恢复通过，缓存独立设备测试通过，PNG 已查看。汇总 artifacts/mobile-stage4/result.json。
+
+APK 0.3.0-stage4（调试签名，42,653,471 字节）已安装。恢复原配对后已实际连接工作目录电脑实例，实际服务在 WLAN 192.168.1.5，平板显示已连接，两端 VPN 未关闭；actual-connection.json 为只读核对。先恢复网络连接再准备前台视频，否则旧 client 关闭会取消视频准备。阅读器按 client 重建桥以恢复失败图片。视频缓存区分轨道表示，进度本机日志按 session/sequence 抵抗乱序。阶段5正式发布未做；短故障测试不代表长时弱网、多OEM、Android17、完整离线视频/附件或真实模型语义验收。
+
+## 2026-11-01 Android 阶段 3（已验收）
+
+新增正式课程入口与 Media3 播放器（进度条、10 秒跳转、倍速、横竖屏/全屏、错误重试）。播放器由 ViewModel 主线程持有，切换布局不重建；后台暂停、上报进度并释放解码器，返回后按原位置准备且不自动播放。课程只来自电脑已注册来源；本地视频和 B站 H.264/AAC 沿用已有鉴权媒体代理，媒体请求可刷新设备凭据，拒绝跨目标重定向。
+
+core/remote-playback.ts 将每设备/知识库/课程的位置与电脑观察进度分开保存，播放会话和序号拒绝旧播放器及乱序覆盖；手动向后拖动仍可保存。明确点击后读取电脑进度；平板发回接力先暂停并冻结位置，电脑「平板连接」确认后进入课程视图并 seek/rate/play。撤销、切库、源变化与重复/已处理请求均检查；不提供通用远程播放器 RPC。视频提问固定点击时刻和时长，电脑后续进度不覆盖该问题。
+
+新增 npm run smoke:android:video，使用独立 D 盘 profile 和受控模型；三星真机通过正式播放器、进度条/倍速/横竖屏/全屏、冻结提问、双向接力、进度恢复和实际前后台释放。本地与真实 BV1CAxaeHEeH 均通过；课程 30 秒/1.5× 发回电脑确认，再由平板接续电脑位置；H.264/AAC 音视频输出复验通过。全量 110/110、受影响 8/8、桌面媒体 11 项与类型/契约/构建通过。当前汇总 artifacts/mobile-stage3/result.json，完整证据 course/，已查看正确方向与真实绘制后的 PNG。APK 0.2.0-stage3 已安装三星；仍是调试版。保持旧 release/0.14.0 和既有脏工作区不变，阶段 4–5 未实施。
+
+接力确认必须先关闭浮层并显示新原生网页，否则新 WebContentsView 即便 bounds 正常也可能 viewport 为 0；失败再显示带原因的连接页。RemotePanel 必须 body portal/固定定位，不能占据主布局。隐藏窗口截图可能陈旧，正式阶段 3 验收显示独立窗口并用 capturePage；移动截图等待帧提交并检查方向。复用测试 profile 时按本轮批准的 deviceId/offerId 区分，不按同名设备全批处理。ReadingView 网络回复通过 web.post，避免跨线程调用。atomicJson 对短暂共享占用有限重试，保持旧文件；未知异步远程错误脱敏。B站替换语言地址的 ERR_ABORTED 仅在同视图/同注册课程时等待后继加载，不绕过站点安全。
+
+## 2026-10-30 Android 平板阶段 0–2（已验收）
+
+按确认方案完成可行性验证、电脑局域网服务、Android 阅读与对话。三星 SM-X808U / Android13 真机通过配对/TLS、加密连接保存/恢复、搜索、图片/公式/图表、双链、新建/历史会话、只读流式问答、横竖屏和本地视频首帧。真实免登录课程 BV1CAxaeHEeH 双轨通过：3107ms、95 视频帧、178 音频缓冲，H.264/AAC，instrumentation OK；完整结果在 artifacts/remote-android-192.168.1.4_36693-course。正式播放器 UI/播放进度接力、近期缓存、发布包仍属阶段 3–5。
+
+共享 ApplicationServices 的一个 AI/调度实例；RemoteHost/RemoteAuth 提供版本化 HTTPS/WSS、单次配对/电脑批准/凭据轮换/撤销、知识库范围、持久请求台账和只读 principal。平板不得保存/恢复/插图或创建任务。提问按平板资源与时间冻结；笔记版本变化拒绝串读。模型密钥、账号凭据、CDN 地址和浏览器 Cookie 不下发。
+
+关键修复：WebView 显式 MATCH_PARENT，否则 Chromium 百分比根高度可为 0；真机检查 DOM、几何与文字像素。LanClient 连接回收在后台，避免主线程网络异常。对话复用 NotePreview 的 followOutput/hideTools，上翻保留历史位置。阅读 ready 在 React 挂载后发出，测试按 note/conversation tag 区分 WebView。
+
+core/http-referrer.ts 按 Chromium 默认策略处理手工 Referer：同 origin 保留无 fragment 路径、跨 origin 只发 origin、HTTPS 降级不发；每次 CDN 跳转重算。原完整跨来源头曾在 DNS 前被本地 delegate 取消，不能将 ERR_BLOCKED_BY_CLIENT 一概归因站点。未知服务异常只在电脑日志记录，不回显原生私有路径。站点 412/权限仍须正常访问，不关闭安全检查或更换 UA/代理绕过。
+
+全量 107/107、后续远程受影响 6/6、真实 Electron 请求头、桌面媒体回归、构建/类型/契约通过。验收范围和限制见 docs/18-Android平板接力开发.md；汇总 artifacts/mobile-acceptance/result.json。摄像头现场扫码、Android17 运行时权限、其他 OEM、真实模型语义和长时弱网未独立验收，不扩大这些结论。
+
+测试独立 D 盘 profile。STUDYMATE_INTERACTIVE_COURSE=1 显示隔离课程窗口，收到明确正常播放状态后写 course-ready 继续，超时不视为确认、不轮询 API/自动解挑战。只可复用本测试 marker 和 realpath 位于 .cache 的目录；不复制用户平时 profile。在线输出用独立 -course 目录，各轮归档；截图前显示平板连接模态层以隐藏原生网页。媒体 Shell 替身必须等异步定位调用完成再精确断言。
+
+APK：apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk（调试版，已装三星）。电脑使用本次 out（npm run start），release/0.14.0 旧包未改。原有脏工作区保留并备份 .cache/mobile-baseline-20261030；SDK/Gradle/临时文件只在 D，Kotlin 编译 in-process。
+
+## 2026-10-28 定时学习任务
+
+每日任务由 `core/schedules.ts` 持久化和调度，模型执行由 `AiService.runScheduled` 使用所属知识库与只读工具完成；入口为左侧「定时学习任务」及对话工具 `create_daily_task`。关闭期间每个到期时间在启动后补跑，中断的运行恢复同一记录，失败可手动重试。当前仅支持每日固定电脑本地时间，执行依赖当前模型配置。详细验证和边界见 `docs/开发日志.md`，受控端到端验证为 `npm run smoke:schedules`。
+
 更新日期：2026-10-26。当前实现版本：0.8.0-documents。用户本轮要求修复两篇真实笔记的排版、对话栏快捷切换模型/推理、浏览器纯视频及用户播放控制。学习工具继续保留；新实现见 docs/11-笔记公式与专注播放器.md，接入见 docs/08-AI接入使用指南.md。
 
 ## 工作约定

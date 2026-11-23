@@ -44,7 +44,7 @@ import { remarkReadableMath } from '../notes/readable-math';
 import { normalizeDisplayMath } from '../notes/math-source';
 const number = (n: number | null | undefined) => (n == null ? '未返回' : n.toLocaleString());
 const toolLabels: Record<string, string> = {
-  search_conversation_history:'检索原始对话记录',list_recent_learning:'查询最近学习',locate_video_segment:'定位课程讲解',get_note_backups:'查询笔记备份',
+  create_daily_task:'创建每日学习任务',search_conversation_history:'检索原始对话记录',list_recent_learning:'查询最近学习',locate_video_segment:'定位课程讲解',get_note_backups:'查询笔记备份',
   search_knowledge:'全文与语义检索',get_backlinks:'查询反向链接',read_transcript:'读取课程转写',ocr_document_page:'识别清晰印刷文字',ocr_image:'识别图片文字',
   list_notes: '浏览笔记目录',
   search_notes: '搜索笔记',

@@ -75,8 +75,31 @@ export class BrowserController {
           this.kernel.emit('service-error', new AppError('PAGE_LOAD', '网页加载失败：' + description));
       });
     }
-    this.kernel.sources.bind(url);
-    await this.view.webContents.loadURL(url);
+    const view = this.view;
+    const binding = this.kernel.sources.bind(url);
+    try {
+      await view.webContents.loadURL(url);
+    } catch (error) {
+      // A course can replace the initial navigation with its own language/canonical URL.
+      // Only follow an aborted load when the same view still owns this exact registered course.
+      const aborted = (error as { code?: string; errno?: number }).code === 'ERR_ABORTED' || (error as { errno?: number }).errno === -3;
+      const sameCourse = () => this.view === view && !view.webContents.isDestroyed() && this.kernel.sources.active?.sourceId === binding.sourceId;
+      if (!aborted || !sameCourse()) throw error;
+      if (view.webContents.isLoadingMainFrame()) await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => finish(new AppError('PAGE_LOAD', '课程页面尚未加载完成，请在电脑重试。')), 20000);
+        const finish = (failure?: Error) => {
+          clearTimeout(timeout);
+          view.webContents.removeListener('did-finish-load', done);
+          view.webContents.removeListener('destroyed', destroyed);
+          failure ? reject(failure) : resolve();
+        };
+        const done = () => finish(sameCourse() ? undefined : new AppError('STALE_CONTEXT', '课程已经切换。'));
+        const destroyed = () => finish(new AppError('PAGE_LOAD', '课程页面已关闭。'));
+        view.webContents.once('did-finish-load', done);
+        view.webContents.once('destroyed', destroyed);
+      });
+      if (!sameCourse()) throw error;
+    }
   }
   async openLocal(file: string): Promise<void> {
     const actual = await fs.realpath(file);

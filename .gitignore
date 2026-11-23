@@ -5,6 +5,10 @@ out/
 artifacts/
 release/
 *.tsbuildinfo
+apps/mobile/android/.gradle/
+apps/mobile/android/**/build/
+apps/mobile/android/local.properties
+apps/mobile/android/app/src/main/assets/reader/
 apps/desktop/src/renderer/public/pdf-assets/
 apps/desktop/src/renderer/public/recognition-runtime/
 vendor/local-models/**/onnx/

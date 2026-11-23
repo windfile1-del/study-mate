@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import {
   ArrowLeft,
@@ -7,11 +8,12 @@ import {
   FolderOpen,
   LoaderCircle,
   PanelRightOpen,
+  PenTool,
   RefreshCw,
   History,
   Save,
 } from 'lucide-react';
-import { NotePreview } from '../notes/NotePreview';
+import { DesktopNotePreview } from '../notes/DesktopNotePreview';
 import { isDirty, type Pane } from './note-desk';
 import type { NoteDesk } from './useNoteDesk';
 import{SynchronizedEditor}from'./SynchronizedEditor';
@@ -30,6 +32,8 @@ export function NotePane({
   onNavigate: (target: string, wiki: boolean, base: string, pane: Pane) => void;
   onDock: () => void;
 }) {
+  const [addPadNonce, setAddPadNonce] = useState(0);
+  const [padCount, setPadCount] = useState(0);
   const session = desk.active(pane);
   if (!session) return <div className="pane-empty">从目录打开笔记，或将标签拖到这里。</div>;
   const { document, content } = session,
@@ -40,7 +44,7 @@ export function NotePane({
   const saving = desk.saving.includes(path),
     dirty = isDirty(session);
   const preview = (source: string) => (
-    <NotePreview
+    <DesktopNotePreview
       key={pane + ':' + path}
       restoreScope={pane}
       source={source}
@@ -50,6 +54,8 @@ export function NotePane({
       initialOffset={desk.position(pane, path)}
       onOffset={(value) => desk.remember(pane, path, value)}
       onNavigate={(target, wiki, base) => onNavigate(target, wiki, base || path, pane)}
+      addPadNonce={addPadNonce}
+      onPadCountChange={setPadCount}
     />
   );
   return (
@@ -102,6 +108,17 @@ export function NotePane({
               </button>
             ))}
           </div>
+          <button
+            className="icon-button"
+            aria-label="插入手写栏"
+            title={padCount > 0 ? `插入手写栏（当前 ${padCount} 个，与平板双向同步）` : '在任意行插入手写栏（与平板双向同步）'}
+            onClick={() => {
+              if (view === 'edit') desk.view(pane, path, 'live');
+              setAddPadNonce((n) => n + 1);
+            }}
+          >
+            <PenTool size={15} />
+          </button>
           <button
             className="icon-button"
             aria-label={pane === 'main' ? '笔记移到右侧' : '笔记移回工作区'}

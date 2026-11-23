@@ -11,6 +11,10 @@ async function call<T>(channel: string, input?: unknown): Promise<T> {
   return result.value;
 }
 const bridge: StudyMateBridge = {
+  remote:input=>call(CHANNELS.remote,input),
+  noteSync:input=>call(CHANNELS.noteSync,input),
+  noteInk:input=>call(CHANNELS.noteInk,input),
+  schedules:input=>call(CHANNELS.schedules,input),
   library:input=>call(CHANNELS.library,input),
   panel:input=>call(CHANNELS.panel,input),
   onPanelEvent:listener=>{const handler=(_event:unknown,value:import('../shared/panels').PanelEvent)=>listener(value);ipcRenderer.on(CHANNELS.panelEvent,handler);return()=>ipcRenderer.removeListener(CHANNELS.panelEvent,handler);},

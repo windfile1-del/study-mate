@@ -159,7 +159,13 @@ try {
   });
   await page.getByRole('button', { name: '打开笔记存储目录', exact: true }).click();
   await page.getByRole('button', { name: '在文件夹中显示笔记', exact: true }).click();
-  assert.deepEqual(await app.evaluate(() => globalThis.__folderCalls), [
+  let folderCalls = [];
+  for (let attempt = 0; attempt < 100; attempt++) {
+    folderCalls = await app.evaluate(() => globalThis.__folderCalls);
+    if (folderCalls.length >= 2) break;
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  assert.deepEqual(folderCalls, [
     initial.vaultPath,
     path.join(initial.vaultPath, '外部文档.md'),
   ]);

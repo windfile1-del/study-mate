@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 export const CHANNELS = {
+  remote:'remote:control',
+  noteSync:'notes:sync-control',
+  noteInk:'notes:ink',
+  schedules:'schedules:request',
   library:'library:request',
   panel:'workspace:panel',panelEvent:'workspace:panel-event',
   annotation:'document:annotation',
@@ -209,6 +213,10 @@ export const observationSchema = z
 export type ObservationInput = z.infer<typeof observationSchema>;
 
 export interface StudyMateBridge {
+  remote(input:import('./remote').RemoteControl):Promise<import('./remote').RemoteHostState>;
+  noteSync(input:import('./note-sync').NoteSyncControl):Promise<import('./note-sync').NoteSyncState>;
+  noteInk(input:import('./note-ink').NoteInkRequest):Promise<import('./note-ink').NoteInkResponse>;
+  schedules(input:import('./schedules').ScheduleRequest):Promise<import('./schedules').ScheduleState>;
   library(input:import('zod').infer<typeof import('./library').libraryRequest>):Promise<import('./library').LibraryReply>;
   panel(input:import('zod').infer<typeof import('./panels').panelRequest>):Promise<import('./panels').PanelState>;
   onPanelEvent(listener:(event:import('./panels').PanelEvent)=>void):()=>void;

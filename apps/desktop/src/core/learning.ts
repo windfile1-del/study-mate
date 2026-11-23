@@ -201,6 +201,13 @@ export class LearningService extends EventEmitter {
     if (this.requests.size > 32) this.requests.delete(this.requests.keys().next().value!);
     return anchor;
   }
+  async freezeRemote(sourceId:string,position:number,epoch:number,deviceId:string):Promise<ContextAnchor>{
+    if(!Number.isFinite(position)||position<0||position>1e7)throw new AppError('STALE_CONTEXT','平板播放位置无效。');
+    const source=this.sources.get(sourceId),runtime=await this.runtime(sourceId),now=new Date().toISOString();
+    const anchor:ContextAnchor={requestId:randomUUID(),sourceId,sourceTitle:source.title,sourceUrl:source.url,visitId:'remote:'+deviceId,generation:epoch,mediaTime:position,submittedAt:now,evidenceCutoffAt:now};
+    this.requests.set(anchor.requestId,{anchor,subtitles:(runtime.session?.subtitles.range(0,Number.MAX_SAFE_INTEGER)||[]).map(s=>({...s})),stale:false});
+    if(this.requests.size>32)this.requests.delete(this.requests.keys().next().value!);return anchor;
+  }
   async freezeSource(sourceId:string):Promise<ContextAnchor>{
     if(this.sources.active?.sourceId===sourceId&&this.playback())return this.freeze();
     const source=this.sources.get(sourceId),visit=this.sources.recentLearning().find(v=>v.sourceId===sourceId),runtime=await this.runtime(sourceId),now=new Date().toISOString();

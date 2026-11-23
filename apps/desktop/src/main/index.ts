@@ -16,6 +16,7 @@ import { DocumentService } from './documents';
 import {RecognitionService} from './recognition';
 import {RecognitionEngine} from './recognition-engine';
 import{FloatingPanels}from'./floating-panels';
+import { ApplicationServices } from './application-services';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = requireDDrive(process.env.STUDYMATE_DATA_DIR || 'D:\\StudyMateData');
@@ -106,6 +107,8 @@ async function boot(): Promise<void> {
   const documents = new DocumentService(kernel.documents, internalUrl('document-engine.html'));
   const recognition=new RecognitionService(kernel,browser,documents,media,new RecognitionEngine(internalUrl('recognition-engine.html')));
   const panels=new FloatingPanels(window,trustedUrl,path.join(here,'../preload/shell.cjs'),kernel.dataDir);
+  const services=new ApplicationServices(kernel,browser,media,documents,recognition,panels);
+  services.remote.on('changed',()=>kernel?.emit('changed'));
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', (event, target) => {
     if (target.split('#')[0] !== trustedUrl.split('#')[0]) event.preventDefault();
@@ -124,7 +127,9 @@ async function boot(): Promise<void> {
     documents,
     recognition,
     panels,
+    services,
   );
+  await services.initializeRemote();
   let notification: ReturnType<typeof setTimeout> | undefined;
   kernel.on('changed', () => {
     if (notification) return;
@@ -132,6 +137,7 @@ async function boot(): Promise<void> {
       notification = undefined;
       if (window && !window.isDestroyed()) window.webContents.send(CHANNELS.changed);
       panels.notify();
+      if(services.remote.state().enabled)services.remote.notifyResources();
     }, 80);
   });
   window.on('close', (event) => {

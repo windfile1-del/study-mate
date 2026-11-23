@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { Session } from 'electron';
 import type { LearningSource, LearningContext } from '../shared/contracts';
+import { referrerHeaders } from '../core/http-referrer';
 import { parseSrt } from '../../../../vendor/video-observer/src/subtitle/SubtitleTimeline.mjs';
 export async function localSubtitles(file: string): Promise<LearningContext['subtitles']> {
   const stem = file.slice(0, file.length - path.extname(file).length);
@@ -27,7 +28,7 @@ export async function biliSubtitles(
 ): Promise<LearningContext['subtitles']> {
   const read = async (url: string) => {
     const response = await ses.fetch(url, {
-      headers: { Referer: source.url },
+      headers: referrerHeaders(source.url, url),
       signal: AbortSignal.timeout(15000),
     });
     if (!response.ok) throw Error('字幕请求不可用');

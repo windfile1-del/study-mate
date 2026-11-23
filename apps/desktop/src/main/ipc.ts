@@ -1,4 +1,4 @@
-import { ipcMain, dialog, shell as desktopShell, BrowserWindow, type IpcMainInvokeEvent } from 'electron';
+import { ipcMain, dialog, shell as desktopShell, BrowserWindow, Notification, type IpcMainInvokeEvent } from 'electron';
 import { z } from 'zod';
 import {
   CHANNELS,
@@ -12,7 +12,10 @@ import type { NoteAssets } from './note-assets';
 import { resultOf, AppError } from '../core/errors';
 import type { BrowserController } from './browser';
 import type { AppKernel } from './kernel';
-import { AiService } from './ai-service';
+import type { ApplicationServices } from './application-services';
+import { remoteControl } from '../shared/remote';
+import { noteSyncControl } from '../shared/note-sync';
+import { noteInkRequestSchema } from '../shared/note-ink';
 import {videoCacheRequest}from'../shared/video-cache';
 import { aiRequestSchema } from '../shared/ai';
 import { playerRequestSchema } from '../shared/player';
@@ -24,6 +27,7 @@ import {knowledgeRequestSchema} from '../shared/knowledge';
 import{annotationRequest}from'../shared/annotations';
 import{FloatingPanels}from'./floating-panels';
 import{libraryRequest}from'../shared/library';
+import { scheduleRequest } from '../shared/schedules';
 
 export function registerIpc(
   window: BrowserWindow,
@@ -36,19 +40,12 @@ export function registerIpc(
   documents: DocumentService,
   recognition:RecognitionService,
   panels:FloatingPanels,
+  services:ApplicationServices,
 ): () => Promise<void> {
-  let dirtyPaths: string[] = [];
+  let dirtyPaths: string[] = services.dirtyPaths;
   const hasDraft=(target:string)=>dirtyPaths.some(p=>p.replaceAll('\\','/').toLowerCase()===target.replaceAll('\\','/').toLowerCase());
-  const ai = new AiService(kernel, {
-    analyze: (input, sourceId, signal) =>
-      media.analyzeForAssistant(input, browser.view?.webContents, sourceId, signal),
-    dirtyPaths: () => dirtyPaths,
-    documents,
-    recognition,
-  });
-  window.once('closed', () => {
-    void ai.close();
-  });
+  const {ai,schedules,schedulesReady}=services;
+  schedules.on('finished',(title:string,failed:boolean)=>{if(Notification.isSupported()){const notice=new Notification({title:failed?'定时学习任务失败':'定时学习任务已完成',body:title+' · 在定时学习任务中查看'});notice.on('click',()=>{if(!window.isDestroyed()){window.show();window.focus();window.webContents.send(CHANNELS.panelEvent,{type:'navigate',target:'schedules'});}});notice.show();}});
   const authorizeShell = (event: IpcMainInvokeEvent) => {
     const frame = event.senderFrame;
     if (
@@ -79,6 +76,21 @@ export function registerIpc(
     );
   };
   shell(CHANNELS.state, () => kernel.state());
+  ipcMain.handle(CHANNELS.remote,(event,input)=>resultOf(()=>{authorizeShell(event);if(event.sender!==window.webContents)throw new AppError('IPC_DENIED','请在主工作台管理平板授权。');return services.remote.control(remoteControl.parse(input));}));
+  ipcMain.handle(CHANNELS.noteSync, (event, input) => resultOf(() => {
+    authorizeShell(event);
+    if (event.sender !== window.webContents) throw new AppError('IPC_DENIED', '请在主工作台管理笔记同步。');
+    return services.noteSync.control(noteSyncControl.parse(input));
+  }));
+  shell(CHANNELS.noteInk, async (raw) => {
+    const req = noteInkRequestSchema.parse(raw);
+    if (req.vaultId !== kernel.vault.id) {
+      throw new AppError('STALE_VAULT', '知识库已切换，请重新打开当前笔记。');
+    }
+    if (req.action === 'load') return services.noteInk.load(req.vaultId, req.path);
+    return services.noteInk.save(req.vaultId, req.path, req.pads);
+  });
+  shell(CHANNELS.schedules,async raw=>{await schedulesReady;const req=scheduleRequest.parse(raw);if(req.action==='create')await schedules.create(req.task,kernel.vault.id);else if(req.action==='update')await schedules.update(req.id,req.task);else if(req.action==='enable')await schedules.enable(req.id,req.enabled);else if(req.action==='delete')await schedules.remove(req.id);else if(req.action==='retry')await schedules.retry(req.id);return schedules.list();});
   shell(CHANNELS.library,async raw=>{const req=libraryRequest.parse(raw);if(req.action==='backups')return{backupPath:kernel.vault.backupPath,backups:await kernel.vault.backups(req.path)};if(req.action==='recent-learning')return{recent:kernel.sources.recentLearning()};
     if(req.action==='backup-content')return{content:await kernel.vault.backupContent(req.id)};
     if(req.action==='restore'){if(hasDraft(req.path))throw Error('请先保存该笔记的草稿再恢复备份');const doc=await kernel.vault.restoreBackup(req.id,req.path,req.version);return{restored:doc.path};}
@@ -221,6 +233,7 @@ export function registerIpc(
       dirtyPaths = value.paths;
       setDirty(value.dirty);
     }
+    services.dirtyPaths=dirtyPaths;
   });
   ipcMain.handle(CHANNELS.binding, (event) =>
     resultOf(() => {
@@ -237,7 +250,7 @@ export function registerIpc(
   );
   return async () => {
     await panels.close();
-    await ai.close();
+    await services.close();
     await recognition.close();
     await documents.close();
   };

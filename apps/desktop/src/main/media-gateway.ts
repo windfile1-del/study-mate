@@ -5,11 +5,15 @@ import path from 'node:path';
 import { Readable } from 'node:stream';
 import { randomUUID } from 'node:crypto';
 import { AppError } from '../core/errors';
+import { referrerHeaders } from '../core/http-referrer';
 
 export const LOCAL_PARTITION = 'study-mate-local-player';
 export const DECODER_PARTITION = 'study-mate-native-decoder';
 protocol.registerSchemesAsPrivileged([
-  {scheme:'study-model',privileges:{standard:true,secure:true,supportFetchAPI:true,corsEnabled:true,stream:true}},
+  {
+    scheme: 'study-model',
+    privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true },
+  },
   {
     scheme: 'study-document',
     privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true },
@@ -119,7 +123,7 @@ export class MediaGateway {
       const browserSession: Session = session.fromPartition('persist:study-mate-browser');
       for (let redirects = 0; redirects < 5; redirects++) {
         if (!asset.allowed(new URL(target))) throw new AppError('MEDIA_HOST', '视频重定向到了未授权地址。');
-        const headers: Record<string, string> = { Referer: asset.referer };
+        const headers = referrerHeaders(asset.referer, target);
         if (request.headers.get('range')) headers.Range = request.headers.get('range')!;
         const response = await browserSession.fetch(target, {
           method: request.method,

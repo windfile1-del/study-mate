@@ -7,6 +7,7 @@ import { AppError } from '../core/errors';
 import { SerialQueue } from '../core/storage';
 import { MediaGateway, DECODER_PARTITION } from './media-gateway';
 import { decodeOnlinePage } from './page-video-decoder';
+import { referrerHeaders } from '../core/http-referrer';
 
 const biliHost = (url: URL) =>
   url.protocol === 'https:' &&
@@ -130,7 +131,7 @@ export class MediaController {
         const timeout = AbortSignal.timeout(20000);
         const response = await ses
           .fetch(url, {
-            headers: { Referer: source.url },
+            headers: referrerHeaders(source.url, url),
             signal: AbortSignal.any([signal, timeout]),
           })
           .catch((error) => {

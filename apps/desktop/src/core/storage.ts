@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import { AppError } from './errors';
 
 export function requireDDrive(target: string): string {
@@ -16,7 +17,16 @@ export async function atomicJson(target: string, value: unknown): Promise<void> 
   const temporary = target + '.' + randomUUID() + '.tmp';
   try {
     await fs.writeFile(temporary, JSON.stringify(value, null, 2), { encoding: 'utf8', flag: 'wx' });
-    await fs.rename(temporary, target);
+    for (let attempt = 0; ; attempt++) {
+      try { await fs.rename(temporary, target); break; }
+      catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (attempt >= 5 || !['EPERM', 'EACCES', 'EBUSY'].includes(code || '')) throw error;
+        // Windows readers/scanners can briefly hold the destination without delete sharing.
+        // Keep the old file intact: retry the atomic rename, never delete/copy over it.
+        await delay(20 * 2 ** attempt);
+      }
+    }
   } finally {
     await fs.unlink(temporary).catch(() => {});
   }

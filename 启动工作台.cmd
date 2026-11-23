@@ -1,5 +1,10 @@
 @echo off
 cd /d "%~dp0"
+rem Prefer the current companion-capable workspace over older desktop-only releases.
+if exist "node_modules\electron\dist\electron.exe" if exist "out\main\index.js" (
+  call npm run start
+  exit /b
+)
 if exist "release\0.14.0\win-unpacked\Study Mate.exe" (
   if not exist ".cache\temp" mkdir ".cache\temp"
   set "TEMP=%~dp0.cache\temp"
